@@ -1,0 +1,7 @@
+{
+  "sanity_min": 0.5,
+  "perturbation_min": 0.55,
+  "robustness_min": 0.6,
+  "nfi_min": 0.6,
+  "text_contradiction_max": 0.2
+}

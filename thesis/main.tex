@@ -1,0 +1,88 @@
+\documentclass[12pt]{report}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath,amssymb}
+\usepackage{siunitx}
+\usepackage{hyperref}
+\usepackage[numbers,sort&compress]{natbib}
+
+\onehalfspacing
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{2}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  citecolor=blue,
+  urlcolor=blue,
+  pdftitle={Clinically Interpretable XAI in Radiology},
+  pdfauthor={Your Name}
+}
+
+% ---------- Thesis metadata ----------
+\newcommand{\thesistitle}{Clinically Interpretable Explainable AI in Radiology}
+\newcommand{\thesissubtitle}{Faithful Text-Capable Explanations for Chest X-Ray Diagnosis}
+\newcommand{\authorname}{Your Name}
+\newcommand{\degreename}{Master of Science in Computer Science}
+\newcommand{\departmentname}{Department of Computer Science}
+\newcommand{\institutionname}{Your University}
+\newcommand{\advisorname}{Professor Name}
+\newcommand{\submissiondate}{Month Year}
+
+\begin{document}
+
+% ---------- Title page ----------
+\begin{titlepage}
+  \centering
+  \vspace*{1.0in}
+  {\Large \thesistitle \par}
+  \vspace{0.15in}
+  {\large \thesissubtitle \par}
+  \vspace{1.0in}
+  {\large \authorname \par}
+  \vspace{0.6in}
+  {\normalsize
+    A thesis submitted in partial fulfillment of the requirements for the degree of \\
+    \degreename
+  \par}
+  \vfill
+  {\normalsize
+    \departmentname \\
+    \institutionname \\
+    Advisor: \advisorname \\
+    \submissiondate
+  \par}
+\end{titlepage}
+
+\pagenumbering{roman}
+\include{sections/00_abstract}
+\include{sections/00_acknowledgments}
+\tableofcontents
+\listoftables
+\listoffigures
+
+\clearpage
+\pagenumbering{arabic}
+\include{sections/01_introduction}
+\include{sections/02_background}
+\include{sections/03_related_work}
+\include{sections/04_problem_setup}
+\include{sections/05_methodology}
+\include{sections/06_experimental_design}
+\include{sections/07_results}
+\include{sections/08_discussion}
+\include{sections/09_conclusion}
+
+\appendix
+\include{sections/A_reproducibility}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

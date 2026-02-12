@@ -1,0 +1,121 @@
+\chapter{Experimental Design}
+
+\section{Datasets and Splits}
+The primary experiments use MIMIC-CXR for diagnostic modeling \citep{johnson2019mimiccxr}. MS-CXR supports localization-oriented evaluation \citep{boecking2024mscxr}, and RadGraph resources support concept extraction \citep{jain2021radgraph}.
+
+\subsection{Cohort Construction}
+\begin{itemize}
+  \item Keep frontal views (AP/PA) only.
+  \item Apply patient-level splitting to avoid leakage.
+  \item Restrict to six core findings: Atelectasis, Cardiomegaly, Consolidation, Edema, Pleural Effusion, Pneumothorax.
+  \item Exclude records with missing core metadata required for split reproducibility.
+\end{itemize}
+
+\subsection{Primary and Secondary Evaluation Partitions}
+\begin{itemize}
+  \item \textbf{Primary partition:} in-domain test split for all metrics.
+  \item \textbf{Stress partition:} perturbation and confound-focused subsets.
+  \item \textbf{Localization partition:} MS-CXR-linked subset for region metrics.
+\end{itemize}
+
+\section{Experiment Matrix}
+Table~\ref{tab:experiment-matrix} defines the core experiment set.
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{p{0.12\linewidth}p{0.36\linewidth}p{0.42\linewidth}}
+\toprule
+\textbf{ID} & \textbf{System} & \textbf{Goal} \\
+\midrule
+E1 & Baseline CXR classifier & Establish predictive reference (AUROC/AUPRC/calibration). \\
+E2 & E1 + Grad-CAM & Saliency baseline under unified faithfulness tests. \\
+E3 & E1 + HiResCAM & Alternative saliency baseline with robustness comparison. \\
+E4 & Concept-head / CBM-style model & Evaluate concept-grounded faithfulness and intervention behavior. \\
+E5 & Constrained text rationale model & Primary text explanation method. \\
+E6 & Less-constrained text rationale model & Text baseline for faithfulness-fluency trade-off. \\
+E7 & Unified cross-family faithfulness run (E2--E6) & Main thesis comparison via shared protocol and NFI. \\
+E8 & Sanity-check suite (randomization) & Verify explanation sensitivity to model/data integrity. \\
+E9 & Spurious-cue stress test & Evaluate robustness to plausible confounding conditions. \\
+\bottomrule
+\end{tabular}
+\caption{Core experiments through Section 6 scope.}
+\label{tab:experiment-matrix}
+\end{table}
+
+\section{Primary Metrics}
+Metrics are reported by split and by finding, then aggregated with confidence intervals.
+
+\subsection{Diagnostic Metrics}
+\begin{itemize}
+  \item AUROC and AUPRC (macro and per-label).
+  \item Calibration metrics (ECE and Brier score).
+\end{itemize}
+
+\subsection{Explanation Metrics}
+\begin{itemize}
+  \item \textbf{Sanity checks (all families):} degradation under model and label randomization.
+  \item \textbf{Deletion/insertion (all families):} confidence curves under evidence removal/recovery.
+  \item \textbf{Nuisance robustness (all families):} explanation stability under mild perturbations, evaluated only when predictions remain stable.
+  \item \textbf{Family-specific secondary metrics:}
+  saliency localization agreement, concept intervention coherence, and text grounding plus contradiction checks.
+\end{itemize}
+
+\subsection{Primary Explanation Endpoint}
+The primary explanation endpoint is NFI (Section 5), with component metrics reported separately for interpretability.
+
+\subsection{Text-Metric Priority}
+For text explanations, grounding-sensitive metrics (concept alignment, finding consistency, contradiction rate) are primary. Surface-form overlap metrics are not used as primary faithfulness evidence.
+
+\section{Ablation and Sensitivity Studies}
+To ensure conclusions are not artifact-driven:
+\begin{enumerate}
+  \item \textbf{Concept supervision fraction:} evaluate reduced concept annotation settings (for example 25\%, 50\%, 100\%).
+  \item \textbf{Text constraint strength:} interpolate between constrained and less-constrained rationale generation.
+  \item \textbf{Perturbation granularity:} coarse versus fine evidence masks.
+  \item \textbf{Backbone sensitivity:} repeat core experiments with one alternate classifier backbone.
+  \item \textbf{Uncertain-label policy sensitivity:} compare primary policy with at least one alternative mapping.
+\end{enumerate}
+
+\section{Statistical Analysis Plan}
+All cross-method comparisons are paired on identical study IDs.
+\begin{itemize}
+  \item Confidence intervals use study-level bootstrap resampling.
+  \item Pairwise method differences are reported with effect sizes and confidence intervals.
+  \item Multiple-comparison correction is applied within each metric family.
+\end{itemize}
+
+\subsection{Precision Targets}
+To prevent over-interpretation of noisy differences, conclusions are treated as confirmatory only when interval precision is adequate. As operational targets:
+\begin{itemize}
+  \item diagnostic delta-AUROC intervals should be sufficiently narrow to distinguish practically relevant differences,
+  \item cross-family NFI differences should remain directionally stable across bootstrap runs and sensitivity analyses.
+\end{itemize}
+If precision targets are not met, findings are reported as exploratory.
+
+\subsection{Analysis Governance}
+Primary endpoints, model selection rules, intervention bounds, and ablation order are fixed before final test evaluation. Any post hoc analysis is labeled explicitly to separate confirmatory from exploratory evidence.
+
+\section{Failure Analysis and Quality Gates}
+Beyond aggregate scores, each run includes structured failure analysis:
+\begin{itemize}
+  \item errors stratified by pathology prevalence and confidence bins,
+  \item disagreement cases between explanation families,
+  \item examples where explanations remain plausible but fail perturbation criteria.
+\end{itemize}
+
+Two quality gates must be met before claiming a stable conclusion:
+\begin{enumerate}
+  \item At least two explanation families pass sanity checks.
+  \item Cross-family ranking under NFI is robust across at least one sensitivity setting.
+  \item Text explanations satisfy grounding-quality thresholds in addition to aggregate NFI performance.
+\end{enumerate}
+
+\section{Reproducibility Deliverables}
+Each experiment release includes:
+\begin{itemize}
+  \item frozen split manifests and label maps,
+  \item config files for training and evaluation,
+  \item metric tables with confidence intervals,
+  \item selected qualitative examples linked to quantitative failures.
+\end{itemize}

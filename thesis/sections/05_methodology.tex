@@ -1,0 +1,133 @@
+\chapter{Methodology}
+
+\section{Overview}
+The methodology is designed around one principle: \textit{explanation families must be compared under matched predictive settings and shared faithfulness tests}. This design follows unified-benchmark recommendations from recent XAI evaluation work while specializing the protocol to radiology constraints \citep{li2023m4,nauta2023systematic}. To enforce this principle, all methods use:
+\begin{itemize}
+  \item the same primary pathology task,
+  \item the same patient-level splits,
+  \item the same preprocessing and augmentation family,
+  \item and the same perturbation protocol for faithfulness evaluation.
+\end{itemize}
+
+\section{Common Diagnostic Backbone}
+Let $f_{\theta}$ denote a multi-label CXR classifier with logits $z \in \mathbb{R}^{K}$ and predicted probabilities $\hat{y}=\sigma(z)$. The classification loss is binary cross-entropy over $K$ findings:
+\begin{equation}
+\mathcal{L}_{\text{cls}} = -\frac{1}{K}\sum_{k=1}^{K}\left[y_k\log(\hat{y}_k) + (1-y_k)\log(1-\hat{y}_k)\right].
+\end{equation}
+
+Model selection is based on validation AUROC and calibration constraints. The architecture choice (for example, DenseNet-like versus modern ConvNet variants) is controlled through an ablation rather than mixed within primary comparisons.
+
+\section{Explanation Families}
+\subsection{Saliency Family}
+Saliency explanations are generated post hoc from the shared backbone. The primary methods are Grad-CAM and HiResCAM, selected because they are widely used in radiology and directly discussed in recent faithfulness audits \citep{saporta2022benchmarking,zhang2024trustworthiness}.
+
+For each target label $k$, a heatmap $M_k \in [0,1]^{H \times W}$ is produced and used for localization and perturbation-based evaluation.
+
+\subsection{Concept Family}
+Concept methods map image evidence into an intermediate concept space $c \in \mathbb{R}^{C}$ derived from report-anchored ontology elements (from RadGraph-style entities/relations). The concept model predicts both diagnosis and concepts:
+\begin{equation}
+\hat{c} = h_{\psi}(x), \qquad \hat{y} = q_{\omega}(\hat{c}),
+\end{equation}
+with composite loss:
+\begin{equation}
+\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{cls}} + \lambda \mathcal{L}_{\text{concept}}.
+\end{equation}
+
+Concept interventions are performed by controlled edits of selected concept dimensions followed by re-evaluation of $\hat{y}$ to test whether explanation-relevant concepts causally influence model output.
+
+\subsection{Text Family}
+Two text rationale tracks are compared:
+\begin{itemize}
+  \item \textbf{Constrained text (primary):} short rationale generation conditioned on model outputs and allowable concept vocabulary, with rule-level grounding constraints.
+  \item \textbf{Less-constrained text (baseline):} short rationale generation with weaker lexical/ontology constraints.
+\end{itemize}
+
+Both tracks are limited to concise finding-focused rationales, not full report generation. This avoids conflating explanation faithfulness with long-form narrative quality.
+
+\section{Unified Faithfulness Protocol}
+\subsection{Protocol Intent}
+The benchmark uses three core faithfulness tests shared across explanation families: sanity checks, deletion/insertion tests, and nuisance robustness. The goal is to compare methods with one conceptual protocol while adapting implementation details to each output type (visual map, concept vector, or text rationale).
+
+\subsection{Core Test 1: Sanity Checks}
+Following \citet{adebayo2018sanity}, explanations are recomputed after model-parameter randomization and label randomization. Faithful explanations should degrade substantially under these controls.
+
+\paragraph{Saliency application.}
+Generate saliency maps for the trained model, then for randomized controls. Measure similarity between original and randomized maps (for example, rank-based or overlap-based similarity). Faithful saliency methods should show strong similarity drop after randomization \citep{saporta2022benchmarking,zhang2024trustworthiness}.
+
+\paragraph{Concept application.}
+Compute concept activation/sensitivity profiles before and after randomization. Faithful concept explanations should show disrupted concept importance when model structure or labels are randomized \citep{kim2018tcav,koh2020cbm}.
+
+\paragraph{Text application.}
+Generate rationales before and after randomization. Primary sanity criteria are grounding-sensitive: concept alignment, finding consistency, and contradiction behavior under randomization. Lexical similarity metrics are recorded only as secondary diagnostics.
+
+\subsection{Deletion and Insertion Tests}
+For a target label $k$, let $s_k(x)$ denote the model confidence score and let $R_t(x,e)$ denote masking or revealing pixels according to the top-$t$ explanation-ranked evidence.
+
+Deletion curve:
+\begin{equation}
+D_k(t) = s_k(R_t^{\text{delete}}(x,e)).
+\end{equation}
+Insertion curve:
+\begin{equation}
+I_k(t) = s_k(R_t^{\text{insert}}(x,e)).
+\end{equation}
+
+Faithful explanations should yield steeper confidence drop under deletion of top evidence and stronger recovery under insertion.
+
+\paragraph{Saliency application.}
+Rank pixels or regions using the saliency map. Deletion masks top-ranked evidence; insertion progressively restores it. Curves and areas-under-curve are compared against random-order baselines.
+
+\paragraph{Concept application.}
+Rank concepts by attribution or intervention sensitivity. Deletion and insertion are implemented by bounded concept interventions within plausible ranges (for example, percentile-clipped edits), not only hard-zero manipulations. This reduces out-of-distribution artifacts in causal testing.
+
+\paragraph{Text application.}
+Textual evidence is mapped to underlying concepts and image regions. Deletion/insertion is then performed on those underlying evidence units, not by prompt rewriting alone. The same intervention family is therefore shared across saliency, concept, and text explanations.
+
+\subsection{Nuisance Robustness}
+Under mild perturbations that preserve diagnostic semantics, explanations are expected to remain stable when predictions remain stable. In practice, perturbations include small brightness, contrast, and noise transforms.
+
+\paragraph{Saliency application.}
+Regenerate heatmaps after perturbation and compare spatial stability to the unperturbed case.
+
+\paragraph{Concept application.}
+Recompute concept vectors after perturbation and measure concept-space stability.
+Stability is summarized with vector similarity and rank consistency.
+
+\paragraph{Text application.}
+Regenerate rationales after perturbation and evaluate semantic stability together with grounding checks. A rationale change is not counted as a robustness failure when prediction changes materially.
+
+\subsection{Cross-Family Normalized Faithfulness Index}
+To support single-axis comparison across families, each metric component is normalized to $[0,1]$ and aggregated:
+\begin{equation}
+\text{NFI} = \frac{1}{3}\left(S_{\text{sanity}} + S_{\text{perturb}} + S_{\text{stability}}\right).
+\end{equation}
+NFI is the primary explanation endpoint, while component scores are reported to avoid hiding method-specific trade-offs.
+
+\subsection{Predefined Decision Rules}
+All thresholds and pass criteria are fixed before final test evaluation. At minimum:
+\begin{itemize}
+  \item sanity-test degradation must exceed predefined minimum effect size thresholds,
+  \item deletion/insertion curves must outperform random baselines with uncertainty bounds,
+  \item robustness is scored conditionally on prediction stability.
+\end{itemize}
+This prevents post hoc threshold tuning and supports transparent cross-family claims.
+
+\section{Grounding and Consistency Checks for Text Explanations}
+Text rationales are evaluated with three checks:
+\begin{itemize}
+  \item \textbf{Concept alignment:} overlap between mentioned concepts and model-activated concepts.
+  \item \textbf{Finding consistency:} rationale labels should agree with model prediction signs.
+  \item \textbf{Contradiction rate:} explicit statement of absent finding when model predicts present (or vice versa).
+\end{itemize}
+These checks are primary for text faithfulness. Surface-form similarity metrics are reported only as secondary diagnostics and are not used as main faithfulness evidence.
+
+\section{Controls for Fairness and Reproducibility}
+The following controls are fixed across families:
+\begin{itemize}
+  \item patient-level split IDs,
+  \item preprocessing and augmentation family,
+  \item pathology set and thresholding policy,
+  \item random seeds and reporting templates.
+\end{itemize}
+
+These controls are required to ensure that observed faithfulness differences reflect explanation mechanisms rather than experimental drift.

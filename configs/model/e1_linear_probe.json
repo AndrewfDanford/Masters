@@ -1,0 +1,18 @@
+{
+  "study_col": "study_id",
+  "split_col": "split",
+  "labels": [
+    "Atelectasis",
+    "Cardiomegaly",
+    "Consolidation",
+    "Edema",
+    "Pleural Effusion",
+    "Pneumothorax"
+  ],
+  "epochs": 300,
+  "learning_rate": 0.05,
+  "weight_decay": 0.0001,
+  "seed": 17,
+  "class_balance": true
+}
+

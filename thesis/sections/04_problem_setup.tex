@@ -1,0 +1,73 @@
+\chapter{Problem Setup and Scope}
+
+\section{Research Questions}
+\begin{enumerate}
+  \item Under a unified protocol, which explanation family (saliency, concept, or text) is most faithful for chest X-ray (CXR) diagnosis models?
+  \item Does adding explicit concept grounding improve the faithfulness of textual rationales?
+  \item Are cross-family faithfulness conclusions stable under perturbation choice, model backbone choice, and label uncertainty handling?
+\end{enumerate}
+
+\section{Hypotheses}
+\textbf{H1 (primary).} Under matched predictive performance, explanation methods with explicit concept grounding achieve higher faithfulness than purely post-hoc saliency methods.
+
+\textbf{H2.} Constrained textual rationales are less fluent but more faithful than less-constrained textual rationales.
+
+\textbf{H3.} A unified benchmark protocol reveals method ranking differences that are not visible when each explanation family is evaluated in isolation.
+
+\section{Formal Task Definition}
+Let $\mathcal{D}=\{(x_i, y_i, s_i, r_i)\}_{i=1}^{N}$ denote CXR data, where:
+\begin{itemize}
+  \item $x_i$ is a chest X-ray image,
+  \item $y_i \in \{0,1\}^{K}$ is a $K$-label pathology vector,
+  \item $s_i$ denotes study metadata (patient, study, and view fields),
+  \item $r_i$ is optional report text.
+\end{itemize}
+
+The diagnostic model $f_{\theta}$ predicts $\hat{y}_i=f_{\theta}(x_i)$. An explanation generator $g_{\phi}$ produces $e_i=g_{\phi}(x_i, f_{\theta})$, where $e_i$ can be:
+\begin{itemize}
+  \item a saliency map,
+  \item a concept vector,
+  \item a short textual rationale.
+\end{itemize}
+
+The central evaluation objective is not only predictive quality of $f_{\theta}$ but the behavioral faithfulness of $e_i$ under controlled interventions.
+
+\section{Data Scope and Rationale}
+The primary dataset stack is:
+\begin{itemize}
+  \item \textbf{MIMIC-CXR-JPG} for large-scale CXR images, report text, and metadata \citep{johnson2019mimiccxr}.
+  \item \textbf{MS-CXR} for localization-aligned phrase annotations supporting region-level evaluation \citep{boecking2024mscxr}.
+  \item \textbf{RadGraph} for report-derived entities and relations used to define concept-grounded explanations \citep{jain2021radgraph}.
+\end{itemize}
+
+This stack is selected because it supports all three explanation families within one domain and enables a clinically relevant comparison rather than synthetic cross-dataset mixing.
+
+\section{Cohort and Label Scope}
+To limit confounding and preserve feasibility in a two-semester timeline:
+\begin{itemize}
+  \item Only frontal views (AP/PA) are included.
+  \item Splits are patient-level to prevent leakage.
+  \item Initial findings are: Atelectasis, Cardiomegaly, Consolidation, Edema, Pleural Effusion, and Pneumothorax.
+  \item The default uncertain-label policy is to exclude uncertain labels from prevalence denominators in primary analyses.
+\end{itemize}
+
+\section{Threat Model and Validity Risks}
+The benchmark explicitly addresses three validity risks:
+\begin{itemize}
+  \item \textbf{Shortcut risk:} explanation highlights non-clinical correlates (for example, acquisition artifacts).
+  \item \textbf{Plausibility risk:} explanation appears convincing but is weakly coupled to model behavior.
+  \item \textbf{Metric-fragmentation risk:} conclusions change substantially across incompatible evaluation definitions.
+\end{itemize}
+
+The design therefore prioritizes intervention-based metrics, standardized perturbation settings, and paired comparisons across explanation families.
+
+\section{Scope Boundaries}
+This thesis is a computer science benchmark study and makes no claim of immediate clinical deployment. It evaluates explanation validity with computational and dataset-based evidence, while treating full clinician reader studies as future work.
+
+\section{Non-Goals}
+\begin{itemize}
+  \item No claim of bedside deployment readiness.
+  \item No claim of causal medical mechanism discovery.
+  \item No requirement for a full radiologist reader study in the master's timeline.
+  \item No claim that generated rationales are equivalent to formal radiology reports.
+\end{itemize}
