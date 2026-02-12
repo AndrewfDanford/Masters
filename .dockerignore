@@ -1,0 +1,11 @@
+.git
+.venv
+__pycache__
+.pytest_cache
+outputs
+papers/downloads
+thesis/main.pdf
+*.pyc
+*.pyo
+*.pyd
+.DS_Store

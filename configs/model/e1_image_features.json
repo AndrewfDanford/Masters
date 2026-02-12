@@ -1,0 +1,16 @@
+{
+  "study_col": "study_id",
+  "subject_col": "subject_id",
+  "dicom_col": "dicom_id",
+  "split_col": "split",
+  "image_path_col": "path",
+  "extractor": "handcrafted",
+  "resize_width": 320,
+  "resize_height": 320,
+  "hist_bins": 16,
+  "backbone_batch_size": 32,
+  "backbone_device": "cpu",
+  "pretrained_backbone": false,
+  "backbone_checkpoint": null,
+  "fail_on_missing": false
+}

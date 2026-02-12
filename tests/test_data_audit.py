@@ -1,10 +1,12 @@
 import pandas as pd
+from argparse import Namespace
 
 from src.data.audit import (
     apply_official_splits,
     assign_patient_splits,
     compute_label_prevalence,
     normalize_uncertain_labels,
+    run_audit,
 )
 
 
@@ -79,3 +81,53 @@ def test_apply_official_splits_maps_validation_alias() -> None:
     out = apply_official_splits(cohort, official, study_col="study_id", split_col="split")
     mapped = out.sort_values("study_id")["split"].tolist()
     assert mapped == ["train", "val", "test"]
+
+
+def test_run_audit_manifest_includes_dicom_and_path_when_available(tmp_path) -> None:
+    metadata_path = tmp_path / "metadata.csv"
+    labels_path = tmp_path / "labels.csv"
+    out_dir = tmp_path / "out"
+
+    pd.DataFrame(
+        {
+            "subject_id": [1001, 1002, 1003],
+            "study_id": [2001, 2002, 2003],
+            "dicom_id": ["a", "b", "c"],
+            "path": [
+                "files/p10/p1001/s2001/a.jpg",
+                "files/p10/p1002/s2002/b.jpg",
+                "files/p10/p1003/s2003/c.jpg",
+            ],
+            "ViewPosition": ["PA", "AP", "PA"],
+        }
+    ).to_csv(metadata_path, index=False)
+
+    pd.DataFrame(
+        {
+            "study_id": [2001, 2002, 2003],
+            "Edema": [1, 0, -1],
+        }
+    ).to_csv(labels_path, index=False)
+
+    args = Namespace(
+        metadata_csv=metadata_path,
+        labels_csv=labels_path,
+        output_dir=out_dir,
+        official_split_csv=None,
+        concepts_file=None,
+        study_col="study_id",
+        subject_col="subject_id",
+        view_col="ViewPosition",
+        split_col="split",
+        train_frac=0.7,
+        val_frac=0.1,
+        seed=17,
+        uncertain_policy="u_ignore",
+        all_views=False,
+        findings=["Edema"],
+    )
+    run_audit(args)
+
+    manifest_df = pd.read_csv(out_dir / "e0_cohort_manifest.csv")
+    assert "dicom_id" in manifest_df.columns
+    assert "path" in manifest_df.columns

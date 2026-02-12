@@ -6,18 +6,48 @@ This repository is structured for a two-semester master's thesis on faithful, te
 - Design and experiment scaffolding complete.
 - E0 data audit pipeline implemented.
 - Unified faithfulness evaluation scaffold implemented (sanity, deletion/insertion, nuisance robustness).
-- E1 baseline training pipeline implemented (using precomputed feature tables).
-- Unified artifact runners implemented for E2/E3 saliency scoring and E7 cross-method reporting.
-- Next phase: explanation generation pipelines (`E2`-`E6`) and concept/text model runners.
+- E1 baseline training pipeline implemented (feature-table and end-to-end CNN variants).
+- Unified artifact runners implemented for E2/E3 saliency scoring, E7 reporting, and E8 randomization checks.
+- Next phase: concept/text explanation pipelines (`E4`-`E6`) and stress-test pipeline (`E9`).
 
 ## Key docs
 - `docs/design_note.md`
 - `docs/experiment_matrix.md`
 - `docs/repo_structure.md`
 - `docs/code_readiness.md`
+- `docs/handoff_quickstart.md`
+- `docs/explanation_artifact_schemas.md`
 - `data_specs/cohort_definition.md`
 - `data_specs/label_mapping.md`
 - `data_specs/concept_schema.md`
+
+## Reproducible runtime
+Native setup (recommended before first run):
+
+```bash
+bash scripts/setup_env.sh
+```
+
+Containerized setup:
+
+```bash
+docker compose build
+docker compose run --rm thesis bash
+```
+
+## Quick start on a new machine
+Use the handoff runbook:
+- `docs/handoff_quickstart.md`
+
+Fast copy-paste path (after environment setup):
+
+```bash
+export MIMIC_METADATA_CSV=/absolute/path/to/mimic-cxr-2.0.0-metadata.csv.gz
+export MIMIC_LABELS_CSV=/absolute/path/to/mimic-cxr-2.0.0-chexpert.csv.gz
+export MIMIC_OFFICIAL_SPLIT_CSV=/absolute/path/to/mimic-cxr-2.0.0-split.csv.gz
+export E1_IMAGE_ROOT=/absolute/path/to/mimic-cxr-jpg
+bash scripts/run_after_data.sh
+```
 
 ## Thesis build
 Once Tectonic is installed, build with:
@@ -86,6 +116,19 @@ Outputs are written to:
 - `outputs/reports/e0_concept_coverage_summary.csv` (if concepts provided)
 - `outputs/reports/e0_concept_support.csv` (if concepts provided)
 
+Notes:
+- `e0_cohort_manifest.csv` keeps `dicom_id` and `path` when present in metadata, so the same manifest can drive image-feature extraction.
+
+One-command first real run (E0 -> E1 CNN -> E2/E3 -> E7):
+
+```bash
+export MIMIC_METADATA_CSV=/path/to/mimic-cxr-2.0.0-metadata.csv.gz
+export MIMIC_LABELS_CSV=/path/to/mimic-cxr-2.0.0-chexpert.csv.gz
+export MIMIC_OFFICIAL_SPLIT_CSV=/path/to/mimic-cxr-2.0.0-split.csv.gz   # optional but recommended
+export E1_IMAGE_ROOT=/path/to/mimic-cxr-jpg
+bash scripts/run_after_data.sh
+```
+
 Run tests:
 
 ```bash
@@ -108,6 +151,18 @@ Run a synthetic demo (no dataset required):
 ```bash
 bash scripts/run_faithfulness_demo.sh
 ```
+
+End-to-end synthetic smoke run (tiny generated images + artifacts):
+
+```bash
+bash scripts/run_synthetic_smoke.sh
+```
+
+Smoke outputs:
+- `outputs/smoke/e1/e1_metrics_summary.csv`
+- `outputs/smoke/e2_e3/e2e3_saliency_method_summary.csv`
+- `outputs/smoke/e7/e7_method_summary.csv`
+- `outputs/smoke/e8/e8_smoke_method_summary.csv`
 
 ## E1 baseline (implemented)
 E1 trains a multi-label linear probe on cohort labels plus precomputed numeric features.
@@ -133,6 +188,81 @@ Outputs:
 - `outputs/reports/e1/e1_model.npz`
 - `outputs/reports/e1/e1_model_card.json`
 
+## E1 image-feature extraction (implemented)
+Extract image features directly from MIMIC JPGs:
+
+```bash
+export E1_IMAGE_INPUT_CSV=/path/to/e0_cohort_manifest.csv
+export E1_IMAGE_ROOT=/path/to/mimic-cxr-jpg
+bash scripts/run_e1_extract_features.sh
+```
+
+Output:
+- `outputs/reports/e1/e1_image_features.csv`
+- `outputs/reports/e1/e1_missing_images.csv`
+
+Default extractor is `handcrafted` (no heavy ML dependency). Optional deep backbones:
+
+```bash
+export E1_FEATURE_EXTRACTOR=resnet18     # or densenet121
+export E1_PRETRAINED_BACKBONE=1          # optional ImageNet init
+export E1_BACKBONE_DEVICE=cpu            # or cuda
+bash scripts/run_e1_extract_features.sh
+```
+
+Backbone mode requires `torch` and `torchvision` installed in your environment.
+
+One-command E1 from images (extract + train):
+
+```bash
+export E1_COHORT_CSV=/path/to/e0_cohort_manifest.csv
+export E1_IMAGE_ROOT=/path/to/mimic-cxr-jpg
+bash scripts/run_e1_from_images.sh
+```
+
+## E1 end-to-end CNN training (implemented)
+Train a multi-label chest X-ray classifier directly from image files and save a checkpoint for E2/E3 generation:
+
+```bash
+export E1_COHORT_CSV=/path/to/e0_cohort_manifest.csv
+export E1_IMAGE_ROOT=/path/to/mimic-cxr-jpg
+bash scripts/run_e1_train_cnn.sh
+```
+
+Optional knobs:
+
+```bash
+export E1_CNN_ARCH=resnet18              # or densenet121
+export E1_CNN_PRETRAINED_BACKBONE=1
+export E1_CNN_EPOCHS=8
+export E1_CNN_DEVICE=cpu                 # or cuda
+export E1_CNN_MAX_SAMPLES_PER_SPLIT=2000 # fast smoke run
+bash scripts/run_e1_train_cnn.sh
+```
+
+Outputs:
+- `outputs/models/e1_cnn_checkpoint.pt`
+- `outputs/reports/e1_cnn/e1_cnn_metrics_by_label.csv`
+- `outputs/reports/e1_cnn/e1_cnn_metrics_summary.csv`
+- `outputs/reports/e1_cnn/e1_cnn_predictions_long.csv`
+- `outputs/reports/e1_cnn/e1_cnn_dataset_counts.csv`
+
+Small-subset orchestration (E1 -> optional E2/E3 -> optional E7):
+
+```bash
+export E1_COHORT_CSV=/path/to/e0_cohort_manifest.csv
+export E1_IMAGE_ROOT=/path/to/mimic-cxr-jpg
+# Optional:
+# export E1_RUN_CNN=1                        # use scripts/run_e1_train_cnn.sh for step 1
+# Optional:
+# export E23_INPUT_CSV=/path/to/e2e3_artifacts.csv
+# export E23_MODEL_CHECKPOINT=/path/to/cxr_model.pt   # enables E2/E3 generation inside pipeline
+# export E7_INPUT_CSV=/path/to/unified_artifacts.csv
+bash scripts/run_small_subset_pipeline.sh
+```
+
+When `E1_RUN_CNN=1`, the pipeline defaults `E23_MODEL_CHECKPOINT` to `outputs/models/e1_cnn_checkpoint.pt`.
+
 ## E2/E3 saliency scoring runner (implemented)
 Run unified scoring on Grad-CAM/HiResCAM artifact tables:
 
@@ -146,6 +276,32 @@ Outputs:
 - `outputs/reports/e2_e3/e2e3_saliency_method_summary.csv`
 - `outputs/reports/e2_e3/e2e3_saliency_pairwise_nfi_deltas.csv`
 
+## E2/E3 saliency artifact generation (implemented)
+Generate Grad-CAM/HiResCAM artifact tables from a CNN checkpoint:
+
+```bash
+export E23_MANIFEST_CSV=/path/to/e0_cohort_manifest.csv
+export E23_IMAGE_ROOT=/path/to/mimic-cxr-jpg
+export E23_MODEL_CHECKPOINT=/path/to/cxr_model.pt
+bash scripts/run_e2_e3_generate.sh
+```
+
+Then run scoring:
+
+```bash
+export E23_INPUT_CSV=outputs/reports/e2_e3/e2e3_artifacts.csv
+bash scripts/run_e2_e3_saliency.sh
+```
+
+One-command generate+score:
+
+```bash
+bash scripts/run_e2_e3_from_model.sh
+```
+
+Generation template config:
+- `configs/explain/e2e3_generation.json`
+
 ## E7 unified benchmark runner (implemented)
 Run cross-family benchmark with one artifact schema:
 
@@ -156,3 +312,28 @@ bash scripts/run_e7_unified.sh
 
 Template schema:
 - `configs/eval/e7_input_template.csv`
+
+## E8 randomization sanity runner (implemented)
+Run multi-run sanity sensitivity summary from artifact tables:
+
+```bash
+export E8_INPUT_CSV=configs/eval/e8_randomization_input_template.csv
+bash scripts/run_e8_randomization.sh
+```
+
+Outputs:
+- `outputs/reports/e8/e8_randomization_run_scores.csv`
+- `outputs/reports/e8/e8_randomization_method_summary.csv`
+- `outputs/reports/e8/e8_randomization_sample_variability.csv`
+
+Template/config:
+- `configs/eval/e8_randomization_input_template.csv`
+- `configs/eval/e8_randomization.json`
+
+## E4-E6 schemas (finalized for implementation)
+Artifact contracts are fixed before model coding:
+
+- `docs/explanation_artifact_schemas.md`
+- `configs/explain/e4_concept_artifact_template.csv`
+- `configs/explain/e5_text_constrained_artifact_template.csv`
+- `configs/explain/e6_text_unconstrained_artifact_template.csv`

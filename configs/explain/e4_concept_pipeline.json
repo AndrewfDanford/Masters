@@ -1,0 +1,27 @@
+{
+  "experiment_id": "E4",
+  "description": "Concept-head / CBM artifact schema for unified faithfulness comparison.",
+  "input": {
+    "cohort_csv": "outputs/reports/e0_cohort_manifest.csv",
+    "concept_labels": "outputs/reports/e0_concept_support.csv",
+    "checkpoint": "outputs/models/e4_concept_checkpoint.pt"
+  },
+  "output": {
+    "artifact_csv": "outputs/reports/e4/e4_artifacts.csv"
+  },
+  "required_columns_for_e7": [
+    "method",
+    "study_id",
+    "sanity_similarity",
+    "deletion_curve",
+    "insertion_curve",
+    "base_prediction",
+    "perturbed_prediction",
+    "nuisance_similarity"
+  ],
+  "recommended_extra_columns": [
+    "concept_alignment",
+    "concept_intervention_effect"
+  ],
+  "method_name": "concept_cbm"
+}

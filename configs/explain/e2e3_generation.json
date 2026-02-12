@@ -1,0 +1,25 @@
+{
+  "manifest_csv": "outputs/reports/e0_cohort_manifest.csv",
+  "image_root": "data/raw/mimic-cxr-jpg",
+  "model_checkpoint": "outputs/models/cxr_resnet18.pt",
+  "output_csv": "outputs/reports/e2_e3/e2e3_artifacts.csv",
+  "arch": "resnet18",
+  "labels": [
+    "Atelectasis",
+    "Cardiomegaly",
+    "Consolidation",
+    "Edema",
+    "Pleural Effusion",
+    "Pneumothorax"
+  ],
+  "methods": [
+    "gradcam",
+    "hirescam"
+  ],
+  "target_split": "test",
+  "curve_steps": 10,
+  "nuisance_brightness": 0.05,
+  "nuisance_contrast": 1.05,
+  "sanity_mode": "head"
+}
+

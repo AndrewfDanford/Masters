@@ -360,6 +360,9 @@ def run_audit(args: argparse.Namespace) -> None:
     manifest_columns = [args.subject_col, args.study_col, args.split_col] + args.findings
     if args.view_col in cohort_df.columns:
         manifest_columns.append(args.view_col)
+    for optional_col in ["dicom_id", "path"]:
+        if optional_col in cohort_df.columns and optional_col not in manifest_columns:
+            manifest_columns.append(optional_col)
     cohort_df[manifest_columns].to_csv(args.output_dir / "e0_cohort_manifest.csv", index=False)
 
     split_counts_df = compute_split_counts(

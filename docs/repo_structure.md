@@ -2,10 +2,14 @@
 
 ```
 /Users/andrew/Documents/New project/
+  Dockerfile
+  docker-compose.yml
   docs/
     design_note.md
     experiment_matrix.md
     repo_structure.md
+    handoff_quickstart.md
+    explanation_artifact_schemas.md
   configs/
     data/
     model/
@@ -22,14 +26,27 @@
     eval/
     utils/
   scripts/
+    setup_env.sh
+    run_after_data.sh
     run_e0_data_audit.sh
+    run_e1_extract_features.sh
     run_e1_baseline.sh
+    run_e1_from_images.sh
+    run_e1_train_cnn.sh
+    run_e2_e3_generate.sh
+    run_e2_e3_from_model.sh
     run_e2_e3_saliency.sh
+    run_e8_randomization.sh
+    run_synthetic_smoke.sh
     run_e7_unified.sh
+    run_small_subset_pipeline.sh
   tests/
-    test_explain_metrics.py
-    test_concept_interventions.py
-    test_text_faithfulness_checks.py
+    test_faithfulness.py
+    test_e1_train_cnn.py
+    test_e2_e3_generate.py
+    test_e8_randomization.py
+    test_synthetic_smoke.py
+    test_unified_benchmark.py
   outputs/
     reports/
     figures/

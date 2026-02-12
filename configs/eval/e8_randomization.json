@@ -1,0 +1,14 @@
+{
+  "input_csv": "outputs/reports/e8/e8_input.csv",
+  "output_dir": "outputs/reports/e8",
+  "output_prefix": "e8_randomization",
+  "method_col": "method",
+  "sample_id_col": "study_id",
+  "run_col": "run_id",
+  "sanity_similarity_col": "sanity_similarity",
+  "min_sanity_score": 0.5,
+  "alpha": 0.05,
+  "num_bootstrap_runs": 200,
+  "seed": 17,
+  "allow_bootstrap_proxy": true
+}

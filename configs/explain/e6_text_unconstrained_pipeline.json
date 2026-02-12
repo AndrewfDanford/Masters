@@ -1,0 +1,28 @@
+{
+  "experiment_id": "E6",
+  "description": "Less-constrained text rationale artifact schema for unified faithfulness comparison.",
+  "input": {
+    "cohort_csv": "outputs/reports/e0_cohort_manifest.csv",
+    "report_text_source": "data/raw/mimic-cxr-jpg/reports",
+    "checkpoint": "outputs/models/e6_text_unconstrained_checkpoint.pt"
+  },
+  "output": {
+    "artifact_csv": "outputs/reports/e6/e6_artifacts.csv"
+  },
+  "required_columns_for_e7": [
+    "method",
+    "study_id",
+    "sanity_similarity",
+    "deletion_curve",
+    "insertion_curve",
+    "base_prediction",
+    "perturbed_prediction",
+    "nuisance_similarity",
+    "text_contradiction"
+  ],
+  "recommended_extra_columns": [
+    "concept_alignment",
+    "finding_consistency"
+  ],
+  "method_name": "text_unconstrained"
+}

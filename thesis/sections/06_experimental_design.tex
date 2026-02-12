@@ -43,6 +43,17 @@ E9 & Spurious-cue stress test & Evaluate robustness to plausible confounding con
 \label{tab:experiment-matrix}
 \end{table}
 
+\section{Implementation Status at Draft Time}
+At the time of this draft, the executable pipeline is complete for E0, E1, E2--E3, E7, and E8 in an artifact-driven form. Concretely, the repository includes:
+\begin{itemize}
+  \item cohort construction and prevalence audit tooling (E0),
+  \item baseline training from feature tables and end-to-end image training (E1),
+  \item saliency artifact generation and scoring for Grad-CAM/HiResCAM (E2--E3),
+  \item unified cross-family scoring with confidence intervals and quality gates (E7),
+  \item multi-run randomization sanity aggregation with pass-rate reporting (E8).
+\end{itemize}
+E4--E6 model training is not yet implemented in this draft, but artifact schemas and method contracts are frozen to prevent interface drift during implementation. E9 remains pending as a dedicated stress-test data-builder and evaluation track.
+
 \section{Primary Metrics}
 Metrics are reported by split and by finding, then aggregated with confidence intervals.
 

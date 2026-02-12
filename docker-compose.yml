@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  thesis:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        INSTALL_TORCH: "1"
+    image: masters-thesis-xai:latest
+    working_dir: /workspace
+    volumes:
+      - ./:/workspace
+    environment:
+      - PYTHONPATH=/workspace
+    tty: true

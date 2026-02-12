@@ -1,0 +1,26 @@
+{
+  "cohort_csv": "outputs/reports/e0_cohort_manifest.csv",
+  "image_root": "data/raw/mimic-cxr-jpg",
+  "output_dir": "outputs/reports/e1_cnn",
+  "checkpoint_out": "outputs/models/e1_cnn_checkpoint.pt",
+  "arch": "resnet18",
+  "labels": [
+    "Atelectasis",
+    "Cardiomegaly",
+    "Consolidation",
+    "Edema",
+    "Pleural Effusion",
+    "Pneumothorax"
+  ],
+  "uncertain_policy": "u_ignore",
+  "input_size": 320,
+  "batch_size": 16,
+  "epochs": 6,
+  "learning_rate": 0.0001,
+  "weight_decay": 0.00001,
+  "freeze_backbone_epochs": 0,
+  "pretrained_backbone": false,
+  "train_augment": false,
+  "class_balance": true
+}
+

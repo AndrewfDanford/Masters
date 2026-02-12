@@ -1,0 +1,13 @@
+method,study_id,run_id,sanity_similarity
+gradcam,10001,1,0.38
+gradcam,10002,1,0.35
+gradcam,10001,2,0.41
+gradcam,10002,2,0.37
+hirescam,10001,1,0.26
+hirescam,10002,1,0.24
+hirescam,10001,2,0.28
+hirescam,10002,2,0.23
+concept_cbm,10001,1,0.18
+concept_cbm,10002,1,0.22
+concept_cbm,10001,2,0.20
+concept_cbm,10002,2,0.21

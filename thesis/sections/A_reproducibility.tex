@@ -2,10 +2,21 @@
 
 \section{Code and Environment}
 \begin{itemize}
-  \item Repository commit hash and branch.
-  \item Dependency versions.
-  \item Hardware and runtime configuration.
+  \item Record repository commit hash and branch for every reported run.
+  \item Record dependency versions from the active environment.
+  \item Record hardware/runtime details (CPU/GPU, RAM, device backend).
 \end{itemize}
+
+\noindent Recommended setup path:
+\begin{verbatim}
+bash scripts/setup_env.sh
+\end{verbatim}
+
+\noindent Optional containerized path:
+\begin{verbatim}
+docker compose build
+docker compose run --rm thesis bash
+\end{verbatim}
 
 \section{Data Processing}
 \begin{itemize}
@@ -14,9 +25,38 @@
   \item Label mapping and uncertain label handling.
 \end{itemize}
 
+\noindent One-command real-data pipeline execution:
+\begin{verbatim}
+export MIMIC_METADATA_CSV=/abs/path/mimic-cxr-2.0.0-metadata.csv.gz
+export MIMIC_LABELS_CSV=/abs/path/mimic-cxr-2.0.0-chexpert.csv.gz
+export MIMIC_OFFICIAL_SPLIT_CSV=/abs/path/mimic-cxr-2.0.0-split.csv.gz
+export E1_IMAGE_ROOT=/abs/path/mimic-cxr-jpg
+bash scripts/run_after_data.sh
+\end{verbatim}
+
 \section{Training and Evaluation}
 \begin{itemize}
-  \item Hyperparameters and early stopping criteria.
+  \item Hyperparameters, optimizer settings, and freeze/unfreeze schedule.
   \item Random seeds and number of runs.
   \item Full metric definitions and confidence interval method.
+\end{itemize}
+
+\noindent Synthetic integration smoke test (no protected data required):
+\begin{verbatim}
+bash scripts/run_synthetic_smoke.sh
+\end{verbatim}
+
+\noindent E8 randomization sanity run (artifact-driven):
+\begin{verbatim}
+export E8_INPUT_CSV=configs/eval/e8_randomization_input_template.csv
+bash scripts/run_e8_randomization.sh
+\end{verbatim}
+
+\section{Expected Output Artifacts}
+\begin{itemize}
+  \item \verb|outputs/reports/e0_cohort_manifest.csv|
+  \item \verb|outputs/reports/e1_cnn/e1_cnn_metrics_summary.csv|
+  \item \verb|outputs/reports/e2_e3/e2e3_saliency_method_summary.csv|
+  \item \verb|outputs/reports/e7/e7_method_summary.csv|
+  \item \verb|outputs/reports/e8/e8_randomization_method_summary.csv| (when E8 input is provided)
 \end{itemize}
