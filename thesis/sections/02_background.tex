@@ -1,16 +1,31 @@
 \chapter{Background}
 
 \section{Chest X-Ray Classification}
-Chest radiograph interpretation is commonly formulated as a multi-label classification task in which one image may contain several co-occurring findings. Public resources such as MIMIC-CXR and CheXpert enabled large-scale benchmarking but also exposed persistent issues in label uncertainty and class imbalance \citep{johnson2019mimiccxr,irvin2019chexpert}. These properties make model calibration and uncertainty handling central concerns, especially when predictions are used as decision support rather than standalone diagnosis.
+Chest radiograph interpretation is commonly formulated as a multi-label classification task in which
+one image may contain several co-occurring findings. Public resources such as MIMIC-CXR and CheXpert
+enabled large-scale benchmarking but also exposed persistent issues in label uncertainty and class
+imbalance \citep{johnson2019mimiccxr,irvin2019chexpert}. These properties make model calibration and
+uncertainty handling central concerns, especially when predictions are used as decision support
+rather than standalone diagnosis.
 
-In this setting, a model's predictive score is not sufficient for safe use. Users also need to understand what evidence drove the prediction and whether that evidence would remain stable under plausible perturbations.
+In this setting, a model's predictive score is not sufficient for safe use. Users also need to
+understand what evidence drove the prediction and whether that evidence would remain stable under
+plausible perturbations.
 
 \section{Explainable AI in Medical Imaging}
 In radiology AI, explanation methods typically fall into three families:
 \begin{itemize}
-  \item \textbf{Post-hoc saliency methods}, which attribute importance to image regions after model training. These methods are widely used but often require explicit reliability validation \citep{adebayo2018sanity,saporta2022benchmarking,zhang2024trustworthiness}.
-  \item \textbf{Concept-based methods}, which map predictions to intermediate clinical or semantic concepts. Representative approaches include concept sensitivity analysis (TCAV), prototype-based interpretability, and concept bottlenecks \citep{kim2018tcav,chen2019protopnet,koh2020cbm}.
-  \item \textbf{Textual explanation methods}, which generate rationales or report-like outputs from image features. Radiology report generation has progressed substantially, but textual fluency and even factual consistency do not automatically imply mechanistic faithfulness \citep{jing2018report,wang2022transformer,delbrouck2022semantic,nicolson2023warm,huang2023generative}.
+  \item \textbf{Post-hoc saliency methods}, which attribute importance to image regions after model
+  training. These methods are widely used but often require explicit reliability validation
+  \citep{adebayo2018sanity,saporta2022benchmarking,zhang2024trustworthiness}.
+  \item \textbf{Concept-based methods}, which map predictions to intermediate clinical or semantic
+  concepts. Representative approaches include concept sensitivity analysis (TCAV),   prototype-based
+  interpretability, and concept bottlenecks
+  \citep{kim2018tcav,chen2019protopnet,koh2020cbm}.
+  \item \textbf{Textual explanation methods}, which generate rationales or report-like outputs from
+  image features. Radiology report generation has progressed substantially, but textual   fluency
+  and even factual consistency do not automatically imply mechanistic faithfulness
+  \citep{jing2018report,wang2022transformer,delbrouck2022semantic,nicolson2023warm,huang2023generative}.
 \end{itemize}
 
 \section{Faithfulness vs Plausibility}
@@ -20,18 +35,30 @@ This thesis distinguishes two properties:
   \item \textbf{Faithfulness}: whether an explanation is behaviorally coupled to the model's internal decision process.
 \end{itemize}
 
-The distinction is critical in healthcare. An explanation can be plausible yet non-faithful, giving users confidence without reflecting actual model reasoning. Prior critiques in clinical AI stress that this mismatch can undermine safety and accountability \citep{reyes2020interpretability,ghassemi2021falsehope}.
+The distinction is critical in healthcare. An explanation can be plausible yet non-faithful, giving
+users confidence without reflecting actual model reasoning. Prior critiques in clinical AI stress
+that this mismatch can undermine safety and accountability
+\citep{reyes2020interpretability,ghassemi2021falsehope}.
 
 \section{Evaluation Concepts}
-A faithful explanation framework should support interventions and stress tests rather than rely on visual appeal alone. The main evaluation concepts used in this thesis are:
+A faithful explanation framework should support interventions and stress tests rather than rely on
+visual appeal alone. The main evaluation concepts used in this thesis are:
 \begin{itemize}
-  \item \textbf{Sanity checks}: explanation outputs should respond to model/data randomization \citep{adebayo2018sanity}.
-  \item \textbf{Perturbation tests}: modifying explanation-indicated evidence should produce corresponding prediction changes.
-  \item \textbf{Localization alignment}: saliency outputs can be compared against expert-marked regions when available \citep{saporta2022benchmarking}.
-  \item \textbf{Concept interventions}: concept-based models should change predictions coherently when concept states are manipulated \citep{koh2020cbm}.
-  \item \textbf{Text grounding checks}: generated rationales should be factually consistent with findings and remain stable under controlled perturbations \citep{delbrouck2022semantic}.
+  \item \textbf{Sanity checks}: explanation outputs should respond to model/data randomization
+  \citep{adebayo2018sanity}.
+  \item \textbf{Perturbation tests}: modifying explanation-indicated evidence should produce
+  corresponding prediction changes.
+  \item \textbf{Localization alignment}: saliency outputs can be compared against expert-marked
+  regions when available \citep{saporta2022benchmarking}.
+  \item \textbf{Concept interventions}: concept-based models should change predictions coherently
+  when concept states are manipulated \citep{koh2020cbm}.
+  \item \textbf{Text grounding checks}: generated rationales should be factually consistent with
+  findings and remain stable under controlled perturbations \citep{delbrouck2022semantic}.
 \end{itemize}
 
-Human-centered evaluations are also valuable, but many existing studies emphasize usability or preference over strict faithfulness. This gap motivates the benchmark orientation in the present work \citep{ahn2022aided,ihongbe2024human}.
+Human-centered evaluations are also valuable, but many existing studies emphasize usability or
+preference over strict faithfulness. This gap motivates the benchmark orientation in the present
+work \citep{ahn2022aided,ihongbe2024human}.
 
-At the methodology level, this framing aligns with broader calls for standardized, quantitative XAI evaluation rather than anecdotal demonstrations \citep{nauta2023systematic}.
+At the methodology level, this framing aligns with broader calls for standardized, quantitative XAI
+evaluation rather than anecdotal demonstrations \citep{nauta2023systematic}.

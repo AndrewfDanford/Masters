@@ -30,6 +30,20 @@ cd /Users/andrew/Documents/New\ project
 bash scripts/build_thesis.sh
 ```
 
+## Format
+Reflow thesis chapter source for consistent line wrapping (no content changes):
+
+```bash
+cd /Users/andrew/Documents/New\ project
+bash scripts/format_thesis.sh
+```
+
+Optional width override:
+
+```bash
+THESIS_FMT_WIDTH=110 bash scripts/format_thesis.sh
+```
+
 ## Customize first
 - Update metadata commands in `main.tex` (name, advisor, institution, date).
 - Replace placeholder chapter text with your thesis content.

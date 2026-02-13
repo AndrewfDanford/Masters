@@ -119,7 +119,7 @@ def build_synthetic_bundle(
             label_map[label] = float(label_state)
 
         image = _draw_synthetic_image(image_size=image_size, label_map=label_map, rng=rng)
-        Image.fromarray(image, mode="RGB").save(absolute_path)
+        Image.fromarray(image).save(absolute_path)
 
         row = {
             "subject_id": subject_id,

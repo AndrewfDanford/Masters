@@ -1,7 +1,9 @@
 \chapter{Experimental Design}
 
 \section{Datasets and Splits}
-The primary experiments use MIMIC-CXR for diagnostic modeling \citep{johnson2019mimiccxr}. MS-CXR supports localization-oriented evaluation \citep{boecking2024mscxr}, and RadGraph resources support concept extraction \citep{jain2021radgraph}.
+The primary experiments use MIMIC-CXR for diagnostic modeling \citep{johnson2019mimiccxr}. MS-CXR
+supports localization-oriented evaluation \citep{boecking2024mscxr}, and RadGraph resources support
+concept extraction \citep{jain2021radgraph}.
 
 \subsection{Cohort Construction}
 \begin{itemize}
@@ -44,7 +46,8 @@ E9 & Spurious-cue stress test & Evaluate robustness to plausible confounding con
 \end{table}
 
 \section{Implementation Status at Draft Time}
-At the time of this draft, the executable pipeline is complete for E0, E1, E2--E3, E7, and E8 in an artifact-driven form. Concretely, the repository includes:
+At the time of this draft, the executable pipeline is complete for E0, E1, E2--E3, E7, and E8 in an
+artifact-driven form. Concretely, the repository includes:
 \begin{itemize}
   \item cohort construction and prevalence audit tooling (E0),
   \item baseline training from feature tables and end-to-end image training (E1),
@@ -52,7 +55,9 @@ At the time of this draft, the executable pipeline is complete for E0, E1, E2--E
   \item unified cross-family scoring with confidence intervals and quality gates (E7),
   \item multi-run randomization sanity aggregation with pass-rate reporting (E8).
 \end{itemize}
-E4--E6 model training is not yet implemented in this draft, but artifact schemas and method contracts are frozen to prevent interface drift during implementation. E9 remains pending as a dedicated stress-test data-builder and evaluation track.
+E4--E6 model training is not yet implemented in this draft, but artifact schemas and method
+contracts are frozen to prevent interface drift during implementation. E9 remains pending as a
+dedicated stress-test data-builder and evaluation track.
 
 \section{Primary Metrics}
 Metrics are reported by split and by finding, then aggregated with confidence intervals.
@@ -66,26 +71,35 @@ Metrics are reported by split and by finding, then aggregated with confidence in
 \subsection{Explanation Metrics}
 \begin{itemize}
   \item \textbf{Sanity checks (all families):} degradation under model and label randomization.
-  \item \textbf{Deletion/insertion (all families):} confidence curves under evidence removal/recovery.
-  \item \textbf{Nuisance robustness (all families):} explanation stability under mild perturbations, evaluated only when predictions remain stable.
+  \item \textbf{Deletion/insertion (all families):}
+  confidence curves under evidence removal/recovery.
+  \item \textbf{Nuisance robustness (all families):} explanation stability under mild
+  perturbations, evaluated only when predictions remain stable.
   \item \textbf{Family-specific secondary metrics:}
-  saliency localization agreement, concept intervention coherence, and text grounding plus contradiction checks.
+  saliency localization agreement, concept intervention coherence, and text grounding plus
+  contradiction checks.
 \end{itemize}
 
 \subsection{Primary Explanation Endpoint}
-The primary explanation endpoint is NFI (Section 5), with component metrics reported separately for interpretability.
+The primary explanation endpoint is NFI (Section 5), with component metrics reported separately for
+interpretability.
 
 \subsection{Text-Metric Priority}
-For text explanations, grounding-sensitive metrics (concept alignment, finding consistency, contradiction rate) are primary. Surface-form overlap metrics are not used as primary faithfulness evidence.
+For text explanations, grounding-sensitive metrics (concept alignment, finding consistency,
+contradiction rate) are primary. Surface-form overlap metrics are not used as primary faithfulness
+evidence.
 
 \section{Ablation and Sensitivity Studies}
 To ensure conclusions are not artifact-driven:
 \begin{enumerate}
-  \item \textbf{Concept supervision fraction:} evaluate reduced concept annotation settings (for example 25\%, 50\%, 100\%).
-  \item \textbf{Text constraint strength:} interpolate between constrained and less-constrained rationale generation.
+  \item \textbf{Concept supervision fraction:} evaluate reduced concept annotation settings (for
+  example 25\%, 50\%, 100\%).
+  \item \textbf{Text constraint strength:} interpolate between constrained and less-constrained
+  rationale generation.
   \item \textbf{Perturbation granularity:} coarse versus fine evidence masks.
   \item \textbf{Backbone sensitivity:} repeat core experiments with one alternate classifier backbone.
-  \item \textbf{Uncertain-label policy sensitivity:} compare primary policy with at least one alternative mapping.
+  \item \textbf{Uncertain-label policy sensitivity:} compare primary policy with at least one
+  alternative mapping.
 \end{enumerate}
 
 \section{Statistical Analysis Plan}
@@ -97,7 +111,8 @@ All cross-method comparisons are paired on identical study IDs.
 \end{itemize}
 
 \subsection{Precision Targets}
-To prevent over-interpretation of noisy differences, conclusions are treated as confirmatory only when interval precision is adequate. As operational targets:
+To prevent over-interpretation of noisy differences, conclusions are treated as confirmatory only
+when interval precision is adequate. As operational targets:
 \begin{itemize}
   \item diagnostic delta-AUROC intervals should be sufficiently narrow to distinguish practically relevant differences,
   \item cross-family NFI differences should remain directionally stable across bootstrap runs and sensitivity analyses.
@@ -105,7 +120,9 @@ To prevent over-interpretation of noisy differences, conclusions are treated as 
 If precision targets are not met, findings are reported as exploratory.
 
 \subsection{Analysis Governance}
-Primary endpoints, model selection rules, intervention bounds, and ablation order are fixed before final test evaluation. Any post hoc analysis is labeled explicitly to separate confirmatory from exploratory evidence.
+Primary endpoints, model selection rules, intervention bounds, and ablation order are fixed before
+final test evaluation. Any post hoc analysis is labeled explicitly to separate confirmatory from
+exploratory evidence.
 
 \section{Failure Analysis and Quality Gates}
 Beyond aggregate scores, each run includes structured failure analysis:

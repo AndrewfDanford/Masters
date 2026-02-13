@@ -8,7 +8,8 @@ This repository is structured for a two-semester master's thesis on faithful, te
 - Unified faithfulness evaluation scaffold implemented (sanity, deletion/insertion, nuisance robustness).
 - E1 baseline training pipeline implemented (feature-table and end-to-end CNN variants).
 - Unified artifact runners implemented for E2/E3 saliency scoring, E7 reporting, and E8 randomization checks.
-- Next phase: concept/text explanation pipelines (`E4`-`E6`) and stress-test pipeline (`E9`).
+- E4/E5/E6 proxy generators implemented for contract-complete pre-data execution.
+- Next phase: replace proxy E4/E5/E6 with model-backed implementations and add stress-test pipeline (`E9`).
 
 ## Key docs
 - `docs/design_note.md`
@@ -34,6 +35,31 @@ Containerized setup:
 docker compose build
 docker compose run --rm thesis bash
 ```
+
+## Monitoring dashboard
+Launch the thesis pipeline dashboard:
+
+```bash
+bash scripts/run_dashboard.sh
+```
+
+Default URL:
+- `http://127.0.0.1:8501`
+
+The dashboard shows:
+- stage-by-stage pipeline status (E0, E1, E2/E3, E4, E5, E6, E7, E8),
+- data audit and run metadata,
+- E1 training metrics,
+- E2/E3 and E7 faithfulness summaries,
+- E8 randomization summaries,
+- per-study sample inspection for available artifacts.
+
+The sidebar also includes run buttons so you can trigger:
+- synthetic smoke pipeline,
+- E4/E5/E6 proxy generators,
+- family artifact assembly,
+- E8 template demo run,
+- full after-data pipeline.
 
 ## Quick start on a new machine
 Use the handoff runbook:
@@ -119,7 +145,7 @@ Outputs are written to:
 Notes:
 - `e0_cohort_manifest.csv` keeps `dicom_id` and `path` when present in metadata, so the same manifest can drive image-feature extraction.
 
-One-command first real run (E0 -> E1 CNN -> E2/E3 -> E7):
+One-command first real run (E0 -> E1 CNN -> E2/E3 -> E4/E5/E6 proxy -> E7 -> E8):
 
 ```bash
 export MIMIC_METADATA_CSV=/path/to/mimic-cxr-2.0.0-metadata.csv.gz
@@ -161,6 +187,10 @@ bash scripts/run_synthetic_smoke.sh
 Smoke outputs:
 - `outputs/smoke/e1/e1_metrics_summary.csv`
 - `outputs/smoke/e2_e3/e2e3_saliency_method_summary.csv`
+- `outputs/smoke/e4/e4_artifacts.csv`
+- `outputs/smoke/e5/e5_artifacts.csv`
+- `outputs/smoke/e6/e6_artifacts.csv`
+- `outputs/smoke/e7/e7_input_all_methods.csv`
 - `outputs/smoke/e7/e7_method_summary.csv`
 - `outputs/smoke/e8/e8_smoke_method_summary.csv`
 
@@ -302,6 +332,57 @@ bash scripts/run_e2_e3_from_model.sh
 Generation template config:
 - `configs/explain/e2e3_generation.json`
 
+## E4/E5/E6 proxy artifact generators (implemented pre-data)
+These runners generate contract-valid artifacts for concept and text families so E7/E8 can run end-to-end
+before model-backed E4/E5/E6 are finished.
+
+E4 concept-family proxy:
+
+```bash
+export E4_COHORT_CSV=outputs/reports/e0_cohort_manifest.csv
+bash scripts/run_e4_concept.sh
+```
+
+E5 constrained-text proxy:
+
+```bash
+export E5_COHORT_CSV=outputs/reports/e0_cohort_manifest.csv
+bash scripts/run_e5_text_constrained.sh
+```
+
+E6 unconstrained-text proxy:
+
+```bash
+export E6_COHORT_CSV=outputs/reports/e0_cohort_manifest.csv
+bash scripts/run_e6_text_unconstrained.sh
+```
+
+Proxy outputs:
+- `outputs/reports/e4/e4_artifacts.csv`
+- `outputs/reports/e5/e5_artifacts.csv`
+- `outputs/reports/e6/e6_artifacts.csv`
+
+Each proxy run also writes a `*_generation_meta.json` file with a warning that the artifacts are
+for integration benchmarking only and should be replaced by model-backed generation for final claims.
+
+## Assemble family artifacts for E7/E8 (implemented)
+Merge E2/E3/E4/E5/E6 artifacts into a strict, validated unified input table:
+
+```bash
+bash scripts/run_assemble_family_artifacts.sh
+```
+
+Default output:
+- `outputs/reports/e7/e7_input_all_methods.csv`
+- `outputs/reports/e7/e7_input_all_methods_meta.json`
+
+Optional explicit input list:
+
+```bash
+export ASSEMBLE_INPUT_CSVS="outputs/reports/e2_e3/e2e3_artifacts.csv,outputs/reports/e4/e4_artifacts.csv,outputs/reports/e5/e5_artifacts.csv,outputs/reports/e6/e6_artifacts.csv"
+bash scripts/run_assemble_family_artifacts.sh
+```
+
 ## E7 unified benchmark runner (implemented)
 Run cross-family benchmark with one artifact schema:
 
@@ -330,8 +411,8 @@ Template/config:
 - `configs/eval/e8_randomization_input_template.csv`
 - `configs/eval/e8_randomization.json`
 
-## E4-E6 schemas (finalized for implementation)
-Artifact contracts are fixed before model coding:
+## E4-E6 schemas and templates
+Artifact contracts and starter templates:
 
 - `docs/explanation_artifact_schemas.md`
 - `configs/explain/e4_concept_artifact_template.csv`

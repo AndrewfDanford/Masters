@@ -1,27 +1,61 @@
 \chapter{Introduction}
 
 \section{Motivation}
-Deep learning systems for chest radiography have improved diagnostic modeling at scale, supported by large public datasets such as MIMIC-CXR and CheXpert \citep{johnson2019mimiccxr,irvin2019chexpert}. As these models become more capable, the demand for clinically meaningful explanation also increases. In radiology, explanations are not only a usability feature; they directly affect how humans calibrate trust, decide when to override a model, and assess failure risk.
+Deep learning systems for chest radiography have improved diagnostic modeling at scale, supported by
+large public datasets such as MIMIC-CXR and CheXpert \citep{johnson2019mimiccxr,irvin2019chexpert}.
+As these models become more capable, the demand for clinically meaningful explanation also
+increases. In radiology, explanations are not only a usability feature; they directly affect how
+humans calibrate trust, decide when to override a model, and assess failure risk.
 
-At the same time, explanation quality remains unresolved. Radiology XAI literature repeatedly highlights tension between explanation methods that look intuitively plausible and methods that are faithful to the model's actual decision process \citep{reyes2020interpretability,ghassemi2021falsehope}. This tension is particularly important in safety-critical workflows, where persuasive but weakly grounded explanations can increase automation bias rather than reduce it.
+At the same time, explanation quality remains unresolved. Radiology XAI literature repeatedly
+highlights tension between explanation methods that look intuitively plausible and methods that are
+faithful to the model's actual decision process
+\citep{reyes2020interpretability,ghassemi2021falsehope}. This tension is particularly important in
+safety-critical workflows, where persuasive but weakly grounded explanations can increase automation
+bias rather than reduce it.
 
-Recent synthesis work further reinforces this concern. A large systematic review of XAI evaluation methods reports high heterogeneity and limited quantitative rigor across studies \citep{nauta2023systematic}. More recent meta-analytic analysis in medical imaging similarly argues that plausible explanations can still fail to reflect the true evidence path used by a model \citep{singh2025beyond}.
+Recent synthesis work further reinforces this concern. A large systematic review of XAI evaluation
+methods reports high heterogeneity and limited quantitative rigor across studies
+\citep{nauta2023systematic}. More recent meta-analytic analysis in medical imaging similarly argues
+that plausible explanations can still fail to reflect the true evidence path used by a model
+\citep{singh2025beyond}.
 
 \section{Problem Statement}
-This thesis addresses the following core problem: how should explanation methods for chest X-ray diagnosis be compared when explanation families (saliency, concepts, text) use different assumptions, outputs, and evaluation conventions? Existing studies frequently evaluate one family at a time, on different datasets and metrics, making cross-family conclusions difficult.
+This thesis addresses the following core problem: how should explanation methods for chest X-ray
+diagnosis be compared when explanation families (saliency, concepts, text) use different
+assumptions, outputs, and evaluation conventions? Existing studies frequently evaluate one family at
+a time, on different datasets and metrics, making cross-family conclusions difficult.
 
-The primary objective is therefore to design and apply a unified faithfulness benchmark for chest X-ray explanation methods. The benchmark emphasizes intervention-based tests in which explanation behavior should track model behavior under controlled perturbations. A secondary objective is to examine whether constrained, concept-grounded text rationales are more faithful than less-constrained textual explanations.
+The primary objective is therefore to design and apply a unified faithfulness benchmark for chest
+X-ray explanation methods. The benchmark emphasizes intervention-based tests in which explanation
+behavior should track model behavior under controlled perturbations. A secondary objective is to
+examine whether constrained, concept-grounded text rationales are more faithful than
+less-constrained textual explanations.
 
 \section{Contributions}
 \begin{enumerate}
-  \item A reproducible experimental protocol that compares saliency-, concept-, and text-based explanations on the same chest X-ray prediction setting.
-  \item A standardized faithfulness evaluation suite combining sanity checks, perturbation analysis, and robustness tests, grounded in prior XAI audit practices \citep{adebayo2018sanity,saporta2022benchmarking,zhang2024trustworthiness,lamprou2024faithfulness}.
-  \item A dedicated analysis of constrained versus less-constrained textual rationales, motivated by recent radiology report-generation progress and known factuality limitations \citep{jing2018report,wang2022transformer,delbrouck2022semantic,nicolson2023warm,huang2023generative}.
-  \item A clear separation between claims supported by computational evidence in this thesis and claims that require future clinician-in-the-loop validation.
+  \item A reproducible experimental protocol that compares saliency-, concept-, and text-based
+  explanations on the same chest X-ray prediction setting.
+  \item A standardized faithfulness evaluation suite combining sanity checks, perturbation
+  analysis, and robustness tests, grounded in prior XAI audit practices
+  \citep{adebayo2018sanity,saporta2022benchmarking,zhang2024trustworthiness,lamprou2024faithfulness}.
+  \item A dedicated analysis of constrained versus less-constrained textual rationales, motivated
+  by recent radiology report-generation progress and known factuality limitations
+  \citep{jing2018report,wang2022transformer,delbrouck2022semantic,nicolson2023warm,huang2023generative}.
+  \item A clear separation between claims supported by computational evidence in this thesis and
+  claims that require future clinician-in-the-loop validation.
 \end{enumerate}
 
 \section{Scope and Assumptions}
-The thesis is scoped to chest X-ray tasks and explanation benchmarking in a computer science research setting. It does not claim immediate clinical deployment readiness and does not assume full radiologist reader studies in the current timeline. Instead, it focuses on methodologically rigorous, reproducible evidence about explanation faithfulness and its measurable trade-offs.
+The thesis is scoped to chest X-ray tasks and explanation benchmarking in a computer science
+research setting. It does not claim immediate clinical deployment readiness and does not assume full
+radiologist reader studies in the current timeline. Instead, it focuses on methodologically
+rigorous, reproducible evidence about explanation faithfulness and its measurable trade-offs.
 
 \section{Thesis Outline}
-Chapter 2 defines the technical background, including faithfulness versus plausibility and explanation families. Chapter 3 synthesizes related work and motivates the benchmark gap. Chapter 4 formalizes the problem setup and boundaries. Chapter 5 presents methodology. Chapter 6 details the experimental design. Chapter 7 reports empirical results. Chapter 8 discusses limitations and implications. Chapter 9 concludes and outlines future extensions, including clinician-centered studies.
+Chapter 2 defines the technical background, including faithfulness versus plausibility and
+explanation families. Chapter 3 synthesizes related work and motivates the benchmark gap. Chapter 4
+formalizes the problem setup and boundaries. Chapter 5 presents methodology. Chapter 6 details the
+experimental design. Chapter 7 reports empirical results. Chapter 8 discusses limitations and
+implications. Chapter 9 concludes and outlines future extensions, including clinician-centered
+studies.

@@ -1,19 +1,57 @@
 \chapter{Related Work}
 
 \section{Saliency Method Reliability in Medical Imaging}
-Saliency methods are the most common explanation interface in radiology AI because they are easy to attach to high-performing classifiers. However, their reliability is actively debated. \citet{adebayo2018sanity} showed that several saliency methods can fail model-parameter randomization tests, indicating weak sensitivity to learned parameters. In chest radiography, \citet{saporta2022benchmarking} reported that standard saliency methods underperform radiologist references on localization quality. More recently, \citet{zhang2024trustworthiness} documented additional robustness issues under perturbations in radiology settings. Together, these results support routine faithfulness audits rather than assuming post-hoc saliency validity.
+Saliency methods are the most common explanation interface in radiology AI because they are easy to
+attach to high-performing classifiers. However, their reliability is actively debated.
+\citet{adebayo2018sanity} showed that several saliency methods can fail model-parameter
+randomization tests, indicating weak sensitivity to learned parameters. In chest radiography,
+\citet{saporta2022benchmarking} reported that standard saliency methods underperform radiologist
+references on localization quality. More recently, \citet{zhang2024trustworthiness} documented
+additional robustness issues under perturbations in radiology settings. Together, these results
+support routine faithfulness audits rather than assuming post-hoc saliency validity.
 
 \section{Concept-Based Interpretability}
-Concept-based approaches attempt to improve interpretability by expressing predictions in semantically meaningful intermediate representations. TCAV introduced quantitative concept sensitivity analysis \citep{kim2018tcav}, while concept bottleneck models integrated concept prediction into model structure \citep{koh2020cbm}. Prototype-oriented methods further aimed to expose example-based evidence pathways \citep{chen2019protopnet}. These approaches improve semantic traceability, but performance and interpretability quality depend on concept definition quality, annotation coverage, and intervention validity.
+Concept-based approaches attempt to improve interpretability by expressing predictions in
+semantically meaningful intermediate representations. TCAV introduced quantitative concept
+sensitivity analysis \citep{kim2018tcav}, while concept bottleneck models integrated concept
+prediction into model structure \citep{koh2020cbm}. Prototype-oriented methods further aimed to
+expose example-based evidence pathways \citep{chen2019protopnet}. These approaches improve semantic
+traceability, but performance and interpretability quality depend on concept definition quality,
+annotation coverage, and intervention validity.
 
 \section{Textual Explanations and Report Generation}
-Text-centric radiology AI has progressed from early co-attention systems \citep{jing2018report} to transformer-based report generation \citep{wang2022transformer,nicolson2023warm}. Subsequent work improved factuality with structured rewards and graph-informed objectives \citep{delbrouck2022semantic}. Despite these advances, evidence remains mixed on whether generated text is a faithful account of model reasoning versus a plausible post-hoc narrative, especially when evaluated outside narrow benchmark settings \citep{huang2023generative}.
+Text-centric radiology AI has progressed from early co-attention systems \citep{jing2018report} to
+transformer-based report generation \citep{wang2022transformer,nicolson2023warm}. Subsequent work
+improved factuality with structured rewards and graph-informed objectives
+\citep{delbrouck2022semantic}. Despite these advances, evidence remains mixed on whether generated
+text is a faithful account of model reasoning versus a plausible post-hoc narrative, especially when
+evaluated outside narrow benchmark settings \citep{huang2023generative}.
 
 \section{Clinical Evaluation and Critical Perspectives}
-Reader studies demonstrate potential workflow value for AI-assisted interpretation, including performance and efficiency gains in specific settings \citep{ahn2022aided}. Human-centered XAI studies also provide insights into perceived usefulness and preference \citep{ihongbe2024human}. However, influential critiques argue that favorable human perception alone does not establish explanation validity or safety \citep{reyes2020interpretability}. This concern is stronger when explanations are weakly tied to model internals \citep{ghassemi2021falsehope}.
+Reader studies demonstrate potential workflow value for AI-assisted interpretation, including
+performance and efficiency gains in specific settings \citep{ahn2022aided}. Human-centered XAI
+studies also provide insights into perceived usefulness and preference \citep{ihongbe2024human}.
+However, influential critiques argue that favorable human perception alone does not establish
+explanation validity or safety \citep{reyes2020interpretability}. This concern is stronger when
+explanations are weakly tied to model internals \citep{ghassemi2021falsehope}.
 
 \section{Unified Faithfulness Benchmarks Beyond Radiology}
-The closest benchmark-style precedent to this thesis is M4, which proposes a unified framework for evaluating XAI faithfulness across multiple modalities and metrics in general AI settings \citep{li2023m4}. M4 is important because it demonstrates that cross-method faithfulness comparison is feasible when evaluation dimensions are standardized. However, it does not resolve radiology-specific constraints such as pathology prevalence skew, report-derived concept grounding, and alignment with chest X-ray localization evidence. The current thesis therefore positions its contribution as an incremental domain-specialized extension: importing unified benchmark principles into clinically constrained CXR explanation evaluation.
+The closest benchmark-style precedent to this thesis is M4, which proposes a unified framework for
+evaluating XAI faithfulness across multiple modalities and metrics in general AI settings
+\citep{li2023m4}. M4 is important because it demonstrates that cross-method faithfulness comparison
+is feasible when evaluation dimensions are standardized. However, it does not resolve
+radiology-specific constraints such as pathology prevalence skew, report-derived concept grounding,
+and alignment with chest X-ray localization evidence. The current thesis therefore positions its
+contribution as an incremental domain-specialized extension: importing unified benchmark principles
+into clinically constrained CXR explanation evaluation.
 
 \section{Gap Summary}
-Across the literature, at least three gaps remain. First, many studies are method-family specific and therefore difficult to compare directly. Second, even when faithfulness is discussed, evaluation protocols remain fragmented across metrics and assumptions \citep{lamprou2024faithfulness,nauta2023systematic}. Third, recent medical imaging synthesis suggests ongoing confusion between plausible and truly faithful explanations \citep{singh2025beyond}. Finally, while M4 provides a strong general benchmark template \citep{li2023m4}, a clinically grounded chest X-ray adaptation with radiology-specific constraints is still missing. These gaps motivate the core research direction of this thesis: a unified, cross-family faithfulness benchmark for chest X-ray explanations.
+Across the literature, at least three gaps remain. First, many studies are method-family specific
+and therefore difficult to compare directly. Second, even when faithfulness is discussed, evaluation
+protocols remain fragmented across metrics and assumptions
+\citep{lamprou2024faithfulness,nauta2023systematic}. Third, recent medical imaging synthesis
+suggests ongoing confusion between plausible and truly faithful explanations
+\citep{singh2025beyond}. Finally, while M4 provides a strong general benchmark template
+\citep{li2023m4}, a clinically grounded chest X-ray adaptation with radiology-specific constraints
+is still missing. These gaps motivate the core research direction of this thesis: a unified,
+cross-family faithfulness benchmark for chest X-ray explanations.
