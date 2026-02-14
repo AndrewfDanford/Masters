@@ -12,6 +12,67 @@ use:
   \item the same preprocessing and augmentation family,
   \item and the same perturbation protocol for faithfulness evaluation.
 \end{itemize}
+Figure~\ref{fig:vertical_pipeline} summarizes the end-to-end pipeline used in this thesis.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  font=\small,
+  box/.style={draw, rounded corners, align=center, minimum width=90mm, minimum height=10mm},
+  halfbox/.style={draw, rounded corners, align=center, minimum width=68mm, minimum height=10mm},
+  widebox/.style={draw, rounded corners, align=left, inner sep=4mm, minimum width=140mm},
+  arrow/.style={-{Latex[length=2.4mm]}, thick},
+  node distance=10mm
+]
+\node[box] (data) {
+\textbf{Dataset Stack}\\
+MIMIC-CXR-JPG \quad MS-CXR \quad RadGraph
+};
+
+\node[box, below=of data] (model) {
+\textbf{Shared Diagnostic Model}\\
+Multi-label CXR classifier (AUROC + calibration)
+};
+
+\node[halfbox, below=14mm of model, xshift=-45mm] (sal) {
+\textbf{Saliency Family}\\
+Grad-CAM \quad HiResCAM
+};
+
+\node[halfbox, below=14mm of model, xshift=45mm] (con) {
+\textbf{Concept Family}\\
+Concept head / CBM-style + interventions
+};
+
+\node[widebox, below=12mm of sal, xshift=45mm] (proto) {
+\textbf{Unified Faithfulness Protocol}\\[2mm]
+1) Sanity checks: model and label randomization\\
+2) Perturbation tests: deletion and insertion\\
+3) Nuisance robustness: stability under mild transforms
+};
+
+\node[box, below=of proto] (nfi) {
+\textbf{Normalized Faithfulness Index (NFI)}\\
+$NFI=\frac{1}{3}\left(S_{\text{sanity}}+S_{\text{perturb}}+S_{\text{stability}}\right)$
+};
+
+\node[box, below=of nfi] (outputs) {
+\textbf{Outputs and Governance}\\
+Metric tables + CIs \quad Failure analysis \quad Reproducibility artifacts\\
+Predefined decision rules and quality gates
+};
+
+\draw[arrow] (data) -- (model);
+\draw[arrow] (proto) -- (nfi);
+\draw[arrow] (nfi) -- (outputs);
+\draw[arrow] (model.south) |- (sal.north);
+\draw[arrow] (model.south) |- (con.north);
+\draw[arrow] (sal.south) -- (proto.north -| sal.south);
+\draw[arrow] (con.south) -- (proto.north -| con.south);
+\end{tikzpicture}
+\caption{Vertical view of the thesis pipeline. Saliency and concept explanations are generated from a shared diagnostic model and evaluated under a unified faithfulness protocol before aggregation into NFI and governed reporting.}
+\label{fig:vertical_pipeline}
+\end{figure}
 
 \section{Common Diagnostic Backbone}
 Let $f_{\theta}$ denote a multi-label CXR classifier with logits $z \in \mathbb{R}^{K}$ and
@@ -50,24 +111,12 @@ Concept interventions are performed by controlled edits of selected concept dime
 re-evaluation of $\hat{y}$ to test whether explanation-relevant concepts causally influence model
 output.
 
-\subsection{Text Family}
-Two text rationale tracks are compared:
-\begin{itemize}
-  \item \textbf{Constrained text (primary):} short rationale generation conditioned on model
-  outputs and allowable concept vocabulary, with rule-level grounding constraints.
-  \item \textbf{Less-constrained text (baseline):} short rationale generation with weaker
-  lexical/ontology constraints.
-\end{itemize}
-
-Both tracks are limited to concise finding-focused rationales, not full report generation. This
-avoids conflating explanation faithfulness with long-form narrative quality.
-
 \section{Unified Faithfulness Protocol}
 \subsection{Protocol Intent}
 The benchmark uses three core faithfulness tests shared across explanation families: sanity checks,
 deletion/insertion tests, and nuisance robustness. The goal is to compare methods with one
-conceptual protocol while adapting implementation details to each output type (visual map, concept
-vector, or text rationale).
+conceptual protocol while adapting implementation details to each output type (visual map or concept
+vector).
 
 \subsection{Core Test 1: Sanity Checks}
 Following \citet{adebayo2018sanity}, explanations are recomputed after model-parameter randomization
@@ -83,11 +132,6 @@ saliency methods should show strong similarity drop after randomization
 Compute concept activation/sensitivity profiles before and after randomization. Faithful concept
 explanations should show disrupted concept importance when model structure or labels are randomized
 \citep{kim2018tcav,koh2020cbm}.
-
-\paragraph{Text application.}
-Generate rationales before and after randomization. Primary sanity criteria are grounding-sensitive:
-concept alignment, finding consistency, and contradiction behavior under randomization. Lexical
-similarity metrics are recorded only as secondary diagnostics.
 
 \subsection{Deletion and Insertion Tests}
 For a target label $k$, let $s_k(x)$ denote the model confidence score and let $R_t(x,e)$ denote
@@ -114,11 +158,6 @@ Rank concepts by attribution or intervention sensitivity. Deletion and insertion
 bounded concept interventions within plausible ranges (for example, percentile-clipped edits), not
 only hard-zero manipulations. This reduces out-of-distribution artifacts in causal testing.
 
-\paragraph{Text application.}
-Textual evidence is mapped to underlying concepts and image regions. Deletion/insertion is then
-performed on those underlying evidence units, not by prompt rewriting alone. The same intervention
-family is therefore shared across saliency, concept, and text explanations.
-
 \subsection{Nuisance Robustness}
 Under mild perturbations that preserve diagnostic semantics, explanations are expected to remain
 stable when predictions remain stable. In practice, perturbations include small brightness,
@@ -131,19 +170,15 @@ Regenerate heatmaps after perturbation and compare spatial stability to the unpe
 Recompute concept vectors after perturbation and measure concept-space stability. Stability is
 summarized with vector similarity and rank consistency.
 
-\paragraph{Text application.}
-Regenerate rationales after perturbation and evaluate semantic stability together with grounding
-checks. A rationale change is not counted as a robustness failure when prediction changes
-materially.
-
-\subsection{Cross-Family Normalized Faithfulness Index}
-To support single-axis comparison across families, each metric component is normalized to $[0,1]$
-and aggregated:
+\subsection{Cross-Family Normalized Faithfulness Index (Secondary Summary)}
+The benchmark is interpreted component-first: sanity, perturbation, and robustness scores are
+analyzed as primary evidence. To provide a compact secondary summary for ranking and visualization,
+each component is also normalized to $[0,1]$ and aggregated:
 \begin{equation}
 \text{NFI} = \frac{1}{3}\left(S_{\text{sanity}} + S_{\text{perturb}} + S_{\text{stability}}\right).
 \end{equation}
-NFI is the primary explanation endpoint, while component scores are reported to avoid hiding
-method-specific trade-offs.
+NFI is therefore reported as a convenience index, not a replacement for component-level analysis.
+Any aggregate interpretation is checked against the underlying component trade-offs.
 
 \subsection{Predefined Decision Rules}
 All thresholds and pass criteria are fixed before final test evaluation. At minimum:
@@ -154,15 +189,11 @@ All thresholds and pass criteria are fixed before final test evaluation. At mini
 \end{itemize}
 This prevents post hoc threshold tuning and supports transparent cross-family claims.
 
-\section{Grounding and Consistency Checks for Text Explanations}
-Text rationales are evaluated with three checks:
-\begin{itemize}
-  \item \textbf{Concept alignment:} overlap between mentioned concepts and model-activated concepts.
-  \item \textbf{Finding consistency:} rationale labels should agree with model prediction signs.
-  \item \textbf{Contradiction rate:} explicit statement of absent finding when model predicts present (or vice versa).
-\end{itemize}
-These checks are primary for text faithfulness. Surface-form similarity metrics are reported only as
-secondary diagnostics and are not used as main faithfulness evidence.
+\section{Deferred Text Extension}
+Text rationales are intentionally out of core scope in this master's phase. The benchmark contracts
+support adding text-family methods later, but no main claims in this thesis depend on constrained
+versus unconstrained rationale generation. This deferral keeps the primary contribution focused on a
+deeper and better-controlled saliency-versus-concept comparison.
 
 \section{Controls for Fairness and Reproducibility}
 The following controls are fixed across families:

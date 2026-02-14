@@ -2,10 +2,9 @@
 
 \section{Research Questions}
 \begin{enumerate}
-  \item Under a unified protocol, which explanation family (saliency, concept, or text) is most
+  \item Under a unified protocol, which explanation family (saliency or concept) is most
   faithful for chest X-ray (CXR) diagnosis models?
-  \item Does adding explicit concept grounding improve the faithfulness of textual rationales?
-  \item Are cross-family faithfulness conclusions stable under perturbation choice, model backbone
+  \item Are saliency-versus-concept faithfulness conclusions stable under perturbation choice, model backbone
   choice, and label uncertainty handling?
 \end{enumerate}
 
@@ -13,10 +12,7 @@
 \textbf{H1 (primary).} Under matched predictive performance, explanation methods with explicit
 concept grounding achieve higher faithfulness than purely post-hoc saliency methods.
 
-\textbf{H2.} Constrained textual rationales are less fluent but more faithful than less-constrained
-textual rationales.
-
-\textbf{H3.} A unified benchmark protocol reveals method ranking differences that are not visible
+\textbf{H2.} A unified benchmark protocol reveals method ranking differences that are not visible
 when each explanation family is evaluated in isolation.
 
 \section{Formal Task Definition}
@@ -32,8 +28,7 @@ The diagnostic model $f_{\theta}$ predicts $\hat{y}_i=f_{\theta}(x_i)$. An expla
 $g_{\phi}$ produces $e_i=g_{\phi}(x_i, f_{\theta})$, where $e_i$ can be:
 \begin{itemize}
   \item a saliency map,
-  \item a concept vector,
-  \item a short textual rationale.
+  \item a concept vector.
 \end{itemize}
 
 The central evaluation objective is not only predictive quality of $f_{\theta}$ but the behavioral
@@ -50,8 +45,8 @@ The primary dataset stack is:
   concept-grounded explanations \citep{jain2021radgraph}.
 \end{itemize}
 
-This stack is selected because it supports all three explanation families within one domain and
-enables a clinically relevant comparison rather than synthetic cross-dataset mixing.
+This stack is selected because it supports matched saliency and concept-family evaluation within one
+domain and enables a clinically relevant comparison rather than synthetic cross-dataset mixing.
 
 \section{Cohort and Label Scope}
 To limit confounding and preserve feasibility in a two-semester timeline:
@@ -85,5 +80,5 @@ treating full clinician reader studies as future work.
   \item No claim of bedside deployment readiness.
   \item No claim of causal medical mechanism discovery.
   \item No requirement for a full radiologist reader study in the master's timeline.
-  \item No claim that generated rationales are equivalent to formal radiology reports.
+  \item No claim that text-rationale methods are fully evaluated in this master's scope.
 \end{itemize}

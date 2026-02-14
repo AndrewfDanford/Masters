@@ -4,13 +4,12 @@
 This thesis investigates clinically interpretable explainable artificial intelligence for chest
 radiograph diagnosis, with emphasis on explanations that are faithful to model behavior rather than
 only plausible to human readers. The work proposes a unified evaluation framework that compares
-three explanation families under a common protocol: post-hoc saliency maps, concept-based
-explanations, and text-based rationales. Using a shared chest X-ray benchmark design, the study
-evaluates both diagnostic performance and explanation quality with standardized faithfulness tests,
-including randomization sanity checks, perturbation-based deletion and insertion analyses, and
-robustness assessments. A central component is the comparison of constrained, concept-grounded text
-rationales against less-constrained text generation to quantify the trade-off between fluency and
-faithfulness. The current implemented contribution is a reproducible benchmark pipeline covering
-cohort audit, baseline modeling, saliency benchmarking, unified cross-method scoring, and
-randomization-sanity aggregation; concept and text model families are specified with frozen artifact
-schemas for the next implementation phase.
+two primary explanation families under a common protocol: post-hoc saliency maps and concept-based
+explanations. Using a shared chest X-ray benchmark design, the study evaluates both diagnostic
+performance and explanation quality with standardized faithfulness tests, including randomization
+sanity checks, perturbation-based deletion and insertion analyses, and robustness assessments. The
+current implemented contribution is a reproducible benchmark pipeline covering cohort audit,
+baseline modeling, saliency benchmarking, concept-family artifact integration, unified cross-method
+scoring, and randomization-sanity aggregation. Text rationale methods remain explicitly out of core
+scope in this master's phase and are framed as a future extension after the saliency-versus-concept
+benchmark is fully validated.

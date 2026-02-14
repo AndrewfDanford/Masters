@@ -1,6 +1,6 @@
 # Clinically Interpretable XAI in Radiology
 
-This repository is structured for a two-semester master's thesis on faithful, text-capable explainable AI for chest X-ray diagnosis.
+This repository is structured for a two-semester master's thesis on faithful explainable AI for chest X-ray diagnosis, with core scope on saliency and concept methods.
 
 ## Current status
 - Design and experiment scaffolding complete.
@@ -8,8 +8,9 @@ This repository is structured for a two-semester master's thesis on faithful, te
 - Unified faithfulness evaluation scaffold implemented (sanity, deletion/insertion, nuisance robustness).
 - E1 baseline training pipeline implemented (feature-table and end-to-end CNN variants).
 - Unified artifact runners implemented for E2/E3 saliency scoring, E7 reporting, and E8 randomization checks.
-- E4/E5/E6 proxy generators implemented for contract-complete pre-data execution.
-- Next phase: replace proxy E4/E5/E6 with model-backed implementations and add stress-test pipeline (`E9`).
+- E4 proxy generator implemented for contract-complete pre-data execution in the concept track.
+- Optional future-work text proxies (E5/E6) retained but disabled by default in the core pipeline.
+- Next phase: replace proxy E4 with model-backed implementation and add stress-test pipeline (`E9`).
 
 ## Key docs
 - `docs/design_note.md`
@@ -47,7 +48,7 @@ Default URL:
 - `http://127.0.0.1:8501`
 
 The dashboard shows:
-- stage-by-stage pipeline status (E0, E1, E2/E3, E4, E5, E6, E7, E8),
+- stage-by-stage pipeline status (E0, E1, E2/E3, E4, E7, E8),
 - data audit and run metadata,
 - E1 training metrics,
 - E2/E3 and E7 faithfulness summaries,
@@ -56,7 +57,7 @@ The dashboard shows:
 
 The sidebar also includes run buttons so you can trigger:
 - synthetic smoke pipeline,
-- E4/E5/E6 proxy generators,
+- E4 proxy generator,
 - family artifact assembly,
 - E8 template demo run,
 - full after-data pipeline.
@@ -145,13 +146,16 @@ Outputs are written to:
 Notes:
 - `e0_cohort_manifest.csv` keeps `dicom_id` and `path` when present in metadata, so the same manifest can drive image-feature extraction.
 
-One-command first real run (E0 -> E1 CNN -> E2/E3 -> E4/E5/E6 proxy -> E7 -> E8):
+One-command first real run (E0 -> E1 CNN -> E2/E3 -> E4 proxy -> E7 -> E8):
 
 ```bash
 export MIMIC_METADATA_CSV=/path/to/mimic-cxr-2.0.0-metadata.csv.gz
 export MIMIC_LABELS_CSV=/path/to/mimic-cxr-2.0.0-chexpert.csv.gz
 export MIMIC_OFFICIAL_SPLIT_CSV=/path/to/mimic-cxr-2.0.0-split.csv.gz   # optional but recommended
 export E1_IMAGE_ROOT=/path/to/mimic-cxr-jpg
+# Optional future-work path:
+# export E5_RUN=1
+# export E6_RUN=1
 bash scripts/run_after_data.sh
 ```
 
@@ -188,8 +192,8 @@ Smoke outputs:
 - `outputs/smoke/e1/e1_metrics_summary.csv`
 - `outputs/smoke/e2_e3/e2e3_saliency_method_summary.csv`
 - `outputs/smoke/e4/e4_artifacts.csv`
-- `outputs/smoke/e5/e5_artifacts.csv`
-- `outputs/smoke/e6/e6_artifacts.csv`
+- `outputs/smoke/e5/e5_artifacts.csv` (optional; set `SMOKE_ENABLE_TEXT_PROXY=1`)
+- `outputs/smoke/e6/e6_artifacts.csv` (optional; set `SMOKE_ENABLE_TEXT_PROXY=1`)
 - `outputs/smoke/e7/e7_input_all_methods.csv`
 - `outputs/smoke/e7/e7_method_summary.csv`
 - `outputs/smoke/e8/e8_smoke_method_summary.csv`
@@ -332,9 +336,9 @@ bash scripts/run_e2_e3_from_model.sh
 Generation template config:
 - `configs/explain/e2e3_generation.json`
 
-## E4/E5/E6 proxy artifact generators (implemented pre-data)
-These runners generate contract-valid artifacts for concept and text families so E7/E8 can run end-to-end
-before model-backed E4/E5/E6 are finished.
+## E4 proxy artifact generator (core, implemented pre-data)
+This runner generates contract-valid concept-family artifacts so E7/E8 can run end-to-end
+before model-backed E4 is finished.
 
 E4 concept-family proxy:
 
@@ -343,14 +347,19 @@ export E4_COHORT_CSV=outputs/reports/e0_cohort_manifest.csv
 bash scripts/run_e4_concept.sh
 ```
 
-E5 constrained-text proxy:
+Core proxy output:
+- `outputs/reports/e4/e4_artifacts.csv`
+
+The following text-family proxies are optional future-work paths (disabled by default in `run_after_data.sh`).
+
+E5 constrained-text proxy (optional):
 
 ```bash
 export E5_COHORT_CSV=outputs/reports/e0_cohort_manifest.csv
 bash scripts/run_e5_text_constrained.sh
 ```
 
-E6 unconstrained-text proxy:
+E6 unconstrained-text proxy (optional):
 
 ```bash
 export E6_COHORT_CSV=outputs/reports/e0_cohort_manifest.csv
@@ -366,7 +375,7 @@ Each proxy run also writes a `*_generation_meta.json` file with a warning that t
 for integration benchmarking only and should be replaced by model-backed generation for final claims.
 
 ## Assemble family artifacts for E7/E8 (implemented)
-Merge E2/E3/E4/E5/E6 artifacts into a strict, validated unified input table:
+Merge available family artifacts into a strict, validated unified input table (core default: E2/E3 + E4):
 
 ```bash
 bash scripts/run_assemble_family_artifacts.sh
@@ -379,7 +388,7 @@ Default output:
 Optional explicit input list:
 
 ```bash
-export ASSEMBLE_INPUT_CSVS="outputs/reports/e2_e3/e2e3_artifacts.csv,outputs/reports/e4/e4_artifacts.csv,outputs/reports/e5/e5_artifacts.csv,outputs/reports/e6/e6_artifacts.csv"
+export ASSEMBLE_INPUT_CSVS="outputs/reports/e2_e3/e2e3_artifacts.csv,outputs/reports/e4/e4_artifacts.csv"
 bash scripts/run_assemble_family_artifacts.sh
 ```
 
@@ -411,7 +420,7 @@ Template/config:
 - `configs/eval/e8_randomization_input_template.csv`
 - `configs/eval/e8_randomization.json`
 
-## E4-E6 schemas and templates
+## E4 core + optional E5/E6 schemas and templates
 Artifact contracts and starter templates:
 
 - `docs/explanation_artifact_schemas.md`

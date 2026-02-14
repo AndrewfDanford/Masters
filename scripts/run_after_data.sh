@@ -66,8 +66,8 @@ export E5_COHORT_CSV="${E5_COHORT_CSV:-${E1_COHORT_CSV}}"
 export E6_COHORT_CSV="${E6_COHORT_CSV:-${E1_COHORT_CSV}}"
 
 export E4_RUN="${E4_RUN:-1}"
-export E5_RUN="${E5_RUN:-1}"
-export E6_RUN="${E6_RUN:-1}"
+export E5_RUN="${E5_RUN:-0}"
+export E6_RUN="${E6_RUN:-0}"
 
 echo "[3/6] Running E4/E5/E6 proxy generators (toggle with E4_RUN/E5_RUN/E6_RUN)..."
 if [[ "${E4_RUN}" == "1" ]]; then
@@ -95,7 +95,32 @@ export ASSEMBLE_E6_CSV="${ASSEMBLE_E6_CSV:-outputs/reports/e6/e6_artifacts.csv}"
 export ASSEMBLE_OUTPUT_CSV="${ASSEMBLE_OUTPUT_CSV:-outputs/reports/e7/e7_input_all_methods.csv}"
 export ASSEMBLE_META_JSON="${ASSEMBLE_META_JSON:-outputs/reports/e7/e7_input_all_methods_meta.json}"
 
-echo "[4/6] Assembling E2/E3/E4/E5/E6 artifacts for unified evaluation..."
+# Build explicit assembly inputs to avoid accidentally including stale artifacts
+# from disabled method families.
+assemble_inputs=()
+if [[ -f "${ASSEMBLE_E23_CSV}" ]]; then
+  assemble_inputs+=("${ASSEMBLE_E23_CSV}")
+fi
+if [[ "${E4_RUN}" == "1" && -f "${ASSEMBLE_E4_CSV}" ]]; then
+  assemble_inputs+=("${ASSEMBLE_E4_CSV}")
+fi
+if [[ "${E5_RUN}" == "1" && -f "${ASSEMBLE_E5_CSV}" ]]; then
+  assemble_inputs+=("${ASSEMBLE_E5_CSV}")
+fi
+if [[ "${E6_RUN}" == "1" && -f "${ASSEMBLE_E6_CSV}" ]]; then
+  assemble_inputs+=("${ASSEMBLE_E6_CSV}")
+fi
+
+if [[ "${#assemble_inputs[@]}" -eq 0 ]]; then
+  echo "No artifacts found to assemble for E7/E8 input."
+  echo "Expected at least E2/E3 artifacts at: ${ASSEMBLE_E23_CSV}"
+  exit 1
+fi
+
+ASSEMBLE_INPUT_CSVS="$(IFS=,; echo "${assemble_inputs[*]}")"
+export ASSEMBLE_INPUT_CSVS
+
+echo "[4/6] Assembling available family artifacts for unified evaluation..."
 bash scripts/run_assemble_family_artifacts.sh
 
 export E7_RUN="${E7_RUN:-1}"
@@ -122,8 +147,8 @@ echo "  - outputs/reports/e0_cohort_manifest.csv"
 echo "  - outputs/reports/e1_cnn/e1_cnn_metrics_summary.csv (if E1_RUN_CNN=1)"
 echo "  - outputs/reports/e2_e3/e2e3_saliency_method_summary.csv"
 echo "  - outputs/reports/e4/e4_artifacts.csv (if E4_RUN=1)"
-echo "  - outputs/reports/e5/e5_artifacts.csv (if E5_RUN=1)"
-echo "  - outputs/reports/e6/e6_artifacts.csv (if E6_RUN=1)"
+echo "  - outputs/reports/e5/e5_artifacts.csv (optional future-work path; if E5_RUN=1)"
+echo "  - outputs/reports/e6/e6_artifacts.csv (optional future-work path; if E6_RUN=1)"
 echo "  - outputs/reports/e7/e7_input_all_methods.csv"
 echo "  - outputs/reports/e7/e7_method_summary.csv"
 echo "  - outputs/reports/e8/e8_randomization_method_summary.csv"

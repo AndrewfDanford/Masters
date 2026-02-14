@@ -50,7 +50,7 @@ def test_infer_stage_status_marks_done_when_required_files_exist(tmp_path: Path)
     assert int(e0_row["completed_artifacts"]) == 3
 
 
-def test_infer_stage_status_includes_e4_e5_e6_stages(tmp_path: Path) -> None:
+def test_infer_stage_status_focuses_on_core_scope_stages(tmp_path: Path) -> None:
     reports = tmp_path / "outputs" / "reports"
     (reports / "e4").mkdir(parents=True, exist_ok=True)
     (reports / "e5").mkdir(parents=True, exist_ok=True)
@@ -61,5 +61,5 @@ def test_infer_stage_status_includes_e4_e5_e6_stages(tmp_path: Path) -> None:
 
     stage_df = infer_stage_status(collect_artifact_paths(tmp_path))
     assert "E4 Concept" in stage_df["stage"].tolist()
-    assert "E5 Text Constrained" in stage_df["stage"].tolist()
-    assert "E6 Text Unconstrained" in stage_df["stage"].tolist()
+    assert "E5 Text Constrained" not in stage_df["stage"].tolist()
+    assert "E6 Text Unconstrained" not in stage_df["stage"].tolist()

@@ -46,10 +46,10 @@ export E23_DEVICE=mps
 # export E1_CNN_MAX_SAMPLES_PER_SPLIT=300
 # export E23_MAX_SAMPLES=200
 
-# Optional: disable E4/E5/E6 proxy generators in this run
-# export E4_RUN=0
-# export E5_RUN=0
-# export E6_RUN=0
+# Optional: text-family proxies are disabled by default in core scope.
+# To enable future-work text tracks explicitly:
+# export E5_RUN=1
+# export E6_RUN=1
 
 bash scripts/run_after_data.sh
 ```
@@ -60,8 +60,8 @@ bash scripts/run_after_data.sh
 - `outputs/reports/e1_cnn/e1_cnn_metrics_summary.csv`
 - `outputs/reports/e2_e3/e2e3_saliency_method_summary.csv`
 - `outputs/reports/e4/e4_artifacts.csv` (proxy unless replaced by model-backed E4)
-- `outputs/reports/e5/e5_artifacts.csv` (proxy unless replaced by model-backed E5)
-- `outputs/reports/e6/e6_artifacts.csv` (proxy unless replaced by model-backed E6)
+- `outputs/reports/e5/e5_artifacts.csv` (optional future-work path; only if enabled)
+- `outputs/reports/e6/e6_artifacts.csv` (optional future-work path; only if enabled)
 - `outputs/reports/e7/e7_input_all_methods.csv`
 - `outputs/reports/e7/e7_method_summary.csv`
 - `outputs/reports/e8/e8_randomization_method_summary.csv`
@@ -75,8 +75,8 @@ bash scripts/run_synthetic_smoke.sh
 Key smoke outputs:
 - `outputs/smoke/e1/e1_metrics_summary.csv`
 - `outputs/smoke/e4/e4_artifacts.csv`
-- `outputs/smoke/e5/e5_artifacts.csv`
-- `outputs/smoke/e6/e6_artifacts.csv`
+- `outputs/smoke/e5/e5_artifacts.csv` (optional; set `SMOKE_ENABLE_TEXT_PROXY=1`)
+- `outputs/smoke/e6/e6_artifacts.csv` (optional; set `SMOKE_ENABLE_TEXT_PROXY=1`)
 - `outputs/smoke/e7/e7_input_all_methods.csv`
 - `outputs/smoke/e7/e7_method_summary.csv`
 

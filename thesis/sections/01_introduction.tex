@@ -22,26 +22,24 @@ that plausible explanations can still fail to reflect the true evidence path use
 
 \section{Problem Statement}
 This thesis addresses the following core problem: how should explanation methods for chest X-ray
-diagnosis be compared when explanation families (saliency, concepts, text) use different
-assumptions, outputs, and evaluation conventions? Existing studies frequently evaluate one family at
-a time, on different datasets and metrics, making cross-family conclusions difficult.
+diagnosis be compared when explanation families (saliency and concepts) use different assumptions,
+outputs, and evaluation conventions? Existing studies frequently evaluate one family at a time, on
+different datasets and metrics, making direct conclusions difficult.
 
 The primary objective is therefore to design and apply a unified faithfulness benchmark for chest
 X-ray explanation methods. The benchmark emphasizes intervention-based tests in which explanation
 behavior should track model behavior under controlled perturbations. A secondary objective is to
-examine whether constrained, concept-grounded text rationales are more faithful than
-less-constrained textual explanations.
+analyze where saliency methods and concept-based methods fail under the same stress conditions.
 
 \section{Contributions}
 \begin{enumerate}
-  \item A reproducible experimental protocol that compares saliency-, concept-, and text-based
-  explanations on the same chest X-ray prediction setting.
+  \item A reproducible experimental protocol that compares saliency and concept explanations on the
+  same chest X-ray prediction setting.
   \item A standardized faithfulness evaluation suite combining sanity checks, perturbation
   analysis, and robustness tests, grounded in prior XAI audit practices
   \citep{adebayo2018sanity,saporta2022benchmarking,zhang2024trustworthiness,lamprou2024faithfulness}.
-  \item A dedicated analysis of constrained versus less-constrained textual rationales, motivated
-  by recent radiology report-generation progress and known factuality limitations
-  \citep{jing2018report,wang2022transformer,delbrouck2022semantic,nicolson2023warm,huang2023generative}.
+  \item A deeper saliency-versus-concept analysis under matched data splits, perturbation settings,
+  and quality gates.
   \item A clear separation between claims supported by computational evidence in this thesis and
   claims that require future clinician-in-the-loop validation.
 \end{enumerate}

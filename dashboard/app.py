@@ -42,7 +42,7 @@ STATUS_EMOJI = {
 THESIS_CROSSWALK: dict[str, dict[str, object]] = {
     "pipeline_overview": {
         "title": "Pipeline Overview",
-        "focus": "End-to-end pipeline logic, explanation families, and unified faithfulness protocol.",
+        "focus": "End-to-end pipeline logic, with saliency and concept families under a unified faithfulness protocol.",
         "sections": [
             "Methodology -> Overview",
             "Methodology -> Unified Faithfulness Protocol",
@@ -82,7 +82,7 @@ THESIS_CROSSWALK: dict[str, dict[str, object]] = {
     },
     "faithfulness_e23_e7": {
         "title": "Faithfulness (E2/E3 + E7)",
-        "focus": "Cross-family explanation benchmarking and NFI-based method comparison.",
+        "focus": "Saliency-versus-concept explanation benchmarking with component-first interpretation and secondary NFI summaries.",
         "sections": [
             "Methodology -> Explanation Families",
             "Methodology -> Core Test 1: Sanity Checks",
@@ -341,15 +341,39 @@ def _data_source_mode(paths: dict[str, Path | None]) -> str:
 def _method_snapshot(frame: pd.DataFrame | None) -> str:
     if frame is None or frame.empty:
         return "No method summary available yet."
-    if not {"method", "nfi"}.issubset(frame.columns):
-        return "Method summary is present but missing `method`/`nfi` columns."
 
-    ranked = frame[["method", "nfi"]].dropna()
-    if ranked.empty:
-        return "Method summary is present but has no non-empty NFI values."
+    if "method" not in frame.columns:
+        return "Method summary is present but missing `method` column."
 
-    best_row = ranked.sort_values(by="nfi", ascending=False).iloc[0]
-    return f"Top method: `{best_row['method']}` (NFI={float(best_row['nfi']):.3f})."
+    component_labels = [
+        ("sanity", "Sanity"),
+        ("perturbation", "Perturbation"),
+        ("robustness", "Robustness"),
+    ]
+    component_bits: list[str] = []
+    for column, label in component_labels:
+        if column not in frame.columns:
+            continue
+        ranked = frame[["method", column]].dropna()
+        if ranked.empty:
+            continue
+        best_row = ranked.sort_values(by=column, ascending=False).iloc[0]
+        component_bits.append(f"{label}: `{best_row['method']}` ({float(best_row[column]):.3f})")
+
+    nfi_bit = ""
+    if "nfi" in frame.columns:
+        nfi_ranked = frame[["method", "nfi"]].dropna()
+        if not nfi_ranked.empty:
+            nfi_best = nfi_ranked.sort_values(by="nfi", ascending=False).iloc[0]
+            nfi_bit = f"NFI summary: `{nfi_best['method']}` ({float(nfi_best['nfi']):.3f})"
+
+    if component_bits and nfi_bit:
+        return " | ".join(component_bits + [nfi_bit])
+    if component_bits:
+        return " | ".join(component_bits)
+    if nfi_bit:
+        return nfi_bit
+    return "Method summary is present but missing non-empty component and NFI values."
 
 
 def _advisor_snapshot_text(
@@ -389,7 +413,7 @@ def _advisor_snapshot_text(
             )
         )
 
-    lines.extend(
+        lines.extend(
         [
             "",
             "## Method Snapshots",
@@ -398,7 +422,9 @@ def _advisor_snapshot_text(
             f"- E8: {_method_snapshot(e8_summary)}",
             "",
             "## Interpretation Notes",
-            "- NFI is a relative faithfulness score in [0,1]; higher is better within a fixed split/protocol.",
+            "- Component metrics (sanity, perturbation, robustness) are primary evidence; interpret those first.",
+            "- NFI is a secondary relative summary score in [0,1]; higher is better within a fixed split/protocol.",
+            "- Current thesis core scope is saliency + concept families; text tracks are optional future work.",
             "- Smoke runs validate pipeline wiring, file contracts, and metric computation paths.",
             "- Smoke runs do not establish clinical validity or model generalization.",
         ]
@@ -415,14 +441,16 @@ def _show_method_summary(title: str, frame: pd.DataFrame | None) -> None:
 
     st.dataframe(frame, use_container_width=True, hide_index=True)
 
-    if "method" in frame.columns and "nfi" in frame.columns:
-        chart_df = frame[["method", "nfi"]].dropna().set_index("method")
-        st.bar_chart(chart_df, use_container_width=True)
-
     component_cols = [column for column in ["sanity", "perturbation", "robustness"] if column in frame.columns]
     if "method" in frame.columns and len(component_cols) >= 2:
+        st.caption("Primary component metrics")
         component_df = frame[["method"] + component_cols].dropna().set_index("method")
         st.bar_chart(component_df, use_container_width=True)
+
+    if "method" in frame.columns and "nfi" in frame.columns:
+        st.caption("Secondary aggregate summary (NFI)")
+        chart_df = frame[["method", "nfi"]].dropna().set_index("method")
+        st.bar_chart(chart_df, use_container_width=True)
 
 
 def _show_pairwise(title: str, frame: pd.DataFrame | None) -> None:
@@ -470,7 +498,20 @@ def _render_sample_inspector(sample_scores: pd.DataFrame | None, source_name: st
     selected_id = st.selectbox("Select sample ID", options=id_values, index=0)
     selected = sample_scores[sample_scores[id_col].astype(str) == selected_id].copy()
 
-    display_cols = [col for col in [id_col, "method", "sample_nfi", "sanity_score", "perturbation_score", "nuisance_similarity", "base_prediction", "perturbed_prediction"] if col in selected.columns]
+    display_cols = [
+        col
+        for col in [
+            id_col,
+            "method",
+            "sanity_score",
+            "perturbation_score",
+            "nuisance_similarity",
+            "sample_nfi",
+            "base_prediction",
+            "perturbed_prediction",
+        ]
+        if col in selected.columns
+    ]
     if display_cols:
         st.dataframe(selected[display_cols], use_container_width=True, hide_index=True)
     else:
@@ -570,26 +611,29 @@ def _render_run_actions(project_root: Path) -> None:
             st.session_state["last_action_name"] = "Run E4 Proxy"
             st.session_state["last_action_result"] = result
 
-        if st.button("Run E5 Proxy", use_container_width=True):
-            with st.spinner("Running E5 constrained-text proxy generator..."):
-                result = _run_pipeline_command(
-                    project_root=project_root,
-                    command=["bash", "scripts/run_e5_text_constrained.sh"],
-                )
-            st.session_state["last_action_name"] = "Run E5 Proxy"
-            st.session_state["last_action_result"] = result
+        with st.expander("Future Work Actions (Text Methods)", expanded=False):
+            st.caption("Optional actions for text-family prototypes, outside the current core thesis scope.")
 
-        if st.button("Run E6 Proxy", use_container_width=True):
-            with st.spinner("Running E6 unconstrained-text proxy generator..."):
-                result = _run_pipeline_command(
-                    project_root=project_root,
-                    command=["bash", "scripts/run_e6_text_unconstrained.sh"],
-                )
-            st.session_state["last_action_name"] = "Run E6 Proxy"
-            st.session_state["last_action_result"] = result
+            if st.button("Run E5 Proxy (Future)", use_container_width=True):
+                with st.spinner("Running E5 constrained-text proxy generator..."):
+                    result = _run_pipeline_command(
+                        project_root=project_root,
+                        command=["bash", "scripts/run_e5_text_constrained.sh"],
+                    )
+                st.session_state["last_action_name"] = "Run E5 Proxy (Future)"
+                st.session_state["last_action_result"] = result
+
+            if st.button("Run E6 Proxy (Future)", use_container_width=True):
+                with st.spinner("Running E6 unconstrained-text proxy generator..."):
+                    result = _run_pipeline_command(
+                        project_root=project_root,
+                        command=["bash", "scripts/run_e6_text_unconstrained.sh"],
+                    )
+                st.session_state["last_action_name"] = "Run E6 Proxy (Future)"
+                st.session_state["last_action_result"] = result
 
         if st.button("Assemble Family Artifacts", use_container_width=True):
-            with st.spinner("Assembling E2/E3/E4/E5/E6 artifacts..."):
+            with st.spinner("Assembling available explanation-family artifacts..."):
                 result = _run_pipeline_command(
                     project_root=project_root,
                     command=["bash", "scripts/run_assemble_family_artifacts.sh"],
@@ -632,7 +676,10 @@ def _render_run_actions(project_root: Path) -> None:
 
 def main() -> None:
     st.title("Radiology XAI Pipeline Dashboard")
-    st.caption("Live view of thesis pipeline artifacts (E0 -> E1 -> E2/E3 -> E4 -> E5 -> E6 -> E7 -> E8).")
+    st.caption(
+        "Live view of thesis pipeline artifacts (E0 -> E1 -> E2/E3 -> E4 -> E7 -> E8). "
+        "Text tracks (E5/E6) are optional future work."
+    )
 
     default_root = Path(__file__).resolve().parents[1]
     project_root_str = st.sidebar.text_input("Project root", value=str(default_root))
@@ -695,10 +742,9 @@ def main() -> None:
                 {"stage": "E1 CNN", "purpose": "Image backbone benchmark", "expected_output": "CNN metrics + run metadata"},
                 {"stage": "E2/E3", "purpose": "Explanation scoring primitives", "expected_output": "method + sample-level faithfulness"},
                 {"stage": "E4", "purpose": "Concept-family artifact generation", "expected_output": "concept-aligned explanation artifacts"},
-                {"stage": "E5", "purpose": "Constrained-text artifact generation", "expected_output": "grounded text rationale artifacts"},
-                {"stage": "E6", "purpose": "Unconstrained-text artifact generation", "expected_output": "baseline text rationale artifacts"},
-                {"stage": "E7", "purpose": "Unified cross-family benchmark", "expected_output": "NFI summaries + pairwise deltas"},
+                {"stage": "E7", "purpose": "Unified cross-family benchmark", "expected_output": "component summaries + secondary NFI/pairwise deltas"},
                 {"stage": "E8", "purpose": "Randomization sanity stress test", "expected_output": "pass rates + run variability"},
+                {"stage": "Future", "purpose": "Optional text-family tracks (E5/E6)", "expected_output": "constrained vs unconstrained text rationale artifacts"},
             ]
         )
         st.subheader("Pipeline Map")
@@ -872,8 +918,9 @@ def main() -> None:
         _render_thesis_reference(project_root, "faithfulness_e23_e7")
 
         st.caption(
-            "Compare explanation families under common tests: sanity, perturbation "
-            "(deletion/insertion), and nuisance robustness."
+            "Compare saliency and concept methods under common tests: sanity, perturbation "
+            "(deletion/insertion), and nuisance robustness. Interpret component metrics first; use "
+            "NFI as a secondary summary."
         )
         e4_artifacts = read_csv_optional(artifact_paths.get("e4_artifacts"))
         e5_artifacts = read_csv_optional(artifact_paths.get("e5_artifacts"))
@@ -882,8 +929,8 @@ def main() -> None:
         artifact_rows: list[dict[str, object]] = []
         for label, frame in [
             ("E4 Concept", e4_artifacts),
-            ("E5 Text Constrained", e5_artifacts),
-            ("E6 Text Unconstrained", e6_artifacts),
+            ("E5 Text Constrained (Future)", e5_artifacts),
+            ("E6 Text Unconstrained (Future)", e6_artifacts),
         ]:
             artifact_rows.append(
                 {
@@ -893,7 +940,7 @@ def main() -> None:
                     "num_methods": int(frame["method"].nunique()) if frame is not None and "method" in frame.columns else 0,
                 }
             )
-        st.subheader("E4/E5/E6 Artifact Availability")
+        st.subheader("Concept + Optional Text Artifact Availability")
         st.dataframe(pd.DataFrame(artifact_rows), use_container_width=True, hide_index=True)
 
         e23_summary = read_csv_optional(artifact_paths["e23_method_summary"])

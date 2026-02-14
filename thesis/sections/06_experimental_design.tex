@@ -34,11 +34,9 @@ E1 & Baseline CXR classifier & Establish predictive reference (AUROC/AUPRC/calib
 E2 & E1 + Grad-CAM & Saliency baseline under unified faithfulness tests. \\
 E3 & E1 + HiResCAM & Alternative saliency baseline with robustness comparison. \\
 E4 & Concept-head / CBM-style model & Evaluate concept-grounded faithfulness and intervention behavior. \\
-E5 & Constrained text rationale model & Primary text explanation method. \\
-E6 & Less-constrained text rationale model & Text baseline for faithfulness-fluency trade-off. \\
-E7 & Unified cross-family faithfulness run (E2--E6) & Main thesis comparison via shared protocol and NFI. \\
+E7 & Unified faithfulness run (E2--E4) & Main thesis comparison via shared protocol and NFI. \\
 E8 & Sanity-check suite (randomization) & Verify explanation sensitivity to model/data integrity. \\
-E9 & Spurious-cue stress test & Evaluate robustness to plausible confounding conditions. \\
+E9 & Spurious-cue stress test (optional extension) & Evaluate robustness to plausible confounding conditions. \\
 \bottomrule
 \end{tabular}
 \caption{Core experiments through Section 6 scope.}
@@ -52,12 +50,14 @@ artifact-driven form. Concretely, the repository includes:
   \item cohort construction and prevalence audit tooling (E0),
   \item baseline training from feature tables and end-to-end image training (E1),
   \item saliency artifact generation and scoring for Grad-CAM/HiResCAM (E2--E3),
+  \item concept-family artifact generation with frozen contracts for model-backed E4 replacement,
   \item unified cross-family scoring with confidence intervals and quality gates (E7),
   \item multi-run randomization sanity aggregation with pass-rate reporting (E8).
 \end{itemize}
-E4--E6 model training is not yet implemented in this draft, but artifact schemas and method
-contracts are frozen to prevent interface drift during implementation. E9 remains pending as a
-dedicated stress-test data-builder and evaluation track.
+E4 model training is not yet implemented in this draft, but artifact schemas and method contracts
+are frozen to prevent interface drift during implementation. Text rationale tracks (former E5/E6)
+are intentionally deferred to future work. E9 remains pending as a dedicated stress-test
+data-builder and evaluation track.
 
 \section{Primary Metrics}
 Metrics are reported by split and by finding, then aggregated with confidence intervals.
@@ -76,26 +76,28 @@ Metrics are reported by split and by finding, then aggregated with confidence in
   \item \textbf{Nuisance robustness (all families):} explanation stability under mild
   perturbations, evaluated only when predictions remain stable.
   \item \textbf{Family-specific secondary metrics:}
-  saliency localization agreement, concept intervention coherence, and text grounding plus
-  contradiction checks.
+  saliency localization agreement and concept intervention coherence.
 \end{itemize}
 
-\subsection{Primary Explanation Endpoint}
-The primary explanation endpoint is NFI (Section 5), with component metrics reported separately for
-interpretability.
+\subsection{Primary Explanation Endpoints}
+Primary explanation endpoints are the three component metrics:
+\begin{itemize}
+  \item sanity score,
+  \item perturbation score (from deletion/insertion behavior),
+  \item nuisance robustness score.
+\end{itemize}
+All three are reported with uncertainty intervals and interpreted directly before any aggregate
+index is considered.
 
-\subsection{Text-Metric Priority}
-For text explanations, grounding-sensitive metrics (concept alignment, finding consistency,
-contradiction rate) are primary. Surface-form overlap metrics are not used as primary faithfulness
-evidence.
+\subsection{Secondary Aggregate Endpoint}
+NFI (Section 5) is used as a secondary summary index for compact comparison and ranking. Any claim
+based on NFI must remain consistent with the component-level evidence.
 
 \section{Ablation and Sensitivity Studies}
 To ensure conclusions are not artifact-driven:
 \begin{enumerate}
   \item \textbf{Concept supervision fraction:} evaluate reduced concept annotation settings (for
   example 25\%, 50\%, 100\%).
-  \item \textbf{Text constraint strength:} interpolate between constrained and less-constrained
-  rationale generation.
   \item \textbf{Perturbation granularity:} coarse versus fine evidence masks.
   \item \textbf{Backbone sensitivity:} repeat core experiments with one alternate classifier backbone.
   \item \textbf{Uncertain-label policy sensitivity:} compare primary policy with at least one
@@ -115,7 +117,8 @@ To prevent over-interpretation of noisy differences, conclusions are treated as 
 when interval precision is adequate. As operational targets:
 \begin{itemize}
   \item diagnostic delta-AUROC intervals should be sufficiently narrow to distinguish practically relevant differences,
-  \item cross-family NFI differences should remain directionally stable across bootstrap runs and sensitivity analyses.
+  \item component-level faithfulness differences (sanity, perturbation, robustness) should remain directionally stable across bootstrap runs and sensitivity analyses.
+  \item secondary NFI ranking should not contradict component-level conclusions.
 \end{itemize}
 If precision targets are not met, findings are reported as exploratory.
 
@@ -135,8 +138,7 @@ Beyond aggregate scores, each run includes structured failure analysis:
 Two quality gates must be met before claiming a stable conclusion:
 \begin{enumerate}
   \item At least two explanation families pass sanity checks.
-  \item Cross-family ranking under NFI is robust across at least one sensitivity setting.
-  \item Text explanations satisfy grounding-quality thresholds in addition to aggregate NFI performance.
+  \item Component-level method ordering is robust across at least one sensitivity setting, with NFI used only as a secondary consistency check.
 \end{enumerate}
 
 \section{Reproducibility Deliverables}

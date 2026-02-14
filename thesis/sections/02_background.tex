@@ -13,7 +13,8 @@ understand what evidence drove the prediction and whether that evidence would re
 plausible perturbations.
 
 \section{Explainable AI in Medical Imaging}
-In radiology AI, explanation methods typically fall into three families:
+In radiology AI, explanation methods typically include saliency, concept, and text families. The
+core scope of this thesis focuses on saliency and concept methods:
 \begin{itemize}
   \item \textbf{Post-hoc saliency methods}, which attribute importance to image regions after model
   training. These methods are widely used but often require explicit reliability validation
@@ -22,11 +23,11 @@ In radiology AI, explanation methods typically fall into three families:
   concepts. Representative approaches include concept sensitivity analysis (TCAV),   prototype-based
   interpretability, and concept bottlenecks
   \citep{kim2018tcav,chen2019protopnet,koh2020cbm}.
-  \item \textbf{Textual explanation methods}, which generate rationales or report-like outputs from
-  image features. Radiology report generation has progressed substantially, but textual   fluency
-  and even factual consistency do not automatically imply mechanistic faithfulness
-  \citep{jing2018report,wang2022transformer,delbrouck2022semantic,nicolson2023warm,huang2023generative}.
 \end{itemize}
+
+Textual explanation methods remain relevant adjacent work. However, constrained-versus-unconstrained
+text rationale comparison is deferred to future work to keep this master's project tractable and
+methodologically tight.
 
 \section{Faithfulness vs Plausibility}
 This thesis distinguishes two properties:
@@ -52,8 +53,6 @@ visual appeal alone. The main evaluation concepts used in this thesis are:
   regions when available \citep{saporta2022benchmarking}.
   \item \textbf{Concept interventions}: concept-based models should change predictions coherently
   when concept states are manipulated \citep{koh2020cbm}.
-  \item \textbf{Text grounding checks}: generated rationales should be factually consistent with
-  findings and remain stable under controlled perturbations \citep{delbrouck2022semantic}.
 \end{itemize}
 
 Human-centered evaluations are also valuable, but many existing studies emphasize usability or

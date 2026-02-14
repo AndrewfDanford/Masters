@@ -291,8 +291,6 @@ def infer_stage_status(paths: dict[str, Path | None]) -> pd.DataFrame:
         ("E2/E3 Generation", ["e23_artifacts"]),
         ("E2/E3 Scoring", ["e23_method_summary", "e23_sample_scores"]),
         ("E4 Concept", ["e4_artifacts"]),
-        ("E5 Text Constrained", ["e5_artifacts"]),
-        ("E6 Text Unconstrained", ["e6_artifacts"]),
         ("E7 Unified", ["e7_method_summary", "e7_sample_scores"]),
         ("E8 Randomization", ["e8_method_summary", "e8_run_scores"]),
     ]

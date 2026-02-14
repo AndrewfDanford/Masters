@@ -105,6 +105,8 @@ def resolve_image_path(
 
 
 def run_feature_extraction(args: argparse.Namespace) -> None:
+    extractor_name = getattr(args, "extractor", "handcrafted")
+
     frame = pd.read_csv(args.input_csv)
     if args.study_col not in frame.columns:
         raise ValueError(f"missing required study column: {args.study_col}")
@@ -162,7 +164,7 @@ def run_feature_extraction(args: argparse.Namespace) -> None:
 
     backbone_error_msg: str | None = None
 
-    if args.extractor == "handcrafted":
+    if extractor_name == "handcrafted":
         for entry in valid_entries:
             resolved_path = entry["_resolved_path"]
             try:
@@ -187,20 +189,20 @@ def run_feature_extraction(args: argparse.Namespace) -> None:
                 continue
 
             output_row = {key: value for key, value in entry.items() if not key.startswith("_")}
-            output_row["extractor"] = args.extractor
+            output_row["extractor"] = extractor_name
             output_row.update(feature_map)
             output_rows.append(output_row)
     else:
         try:
             feature_matrix = extract_backbone_features(
                 image_paths=[entry["_resolved_path"] for entry in valid_entries],
-                model_name=args.extractor,
+                model_name=extractor_name,
                 width=args.resize_width,
                 height=args.resize_height,
-                batch_size=args.batch_size,
-                device=args.device,
-                pretrained=args.pretrained_backbone,
-                checkpoint_path=args.backbone_checkpoint,
+                batch_size=getattr(args, "batch_size", 32),
+                device=getattr(args, "device", "cpu"),
+                pretrained=bool(getattr(args, "pretrained_backbone", False)),
+                checkpoint_path=getattr(args, "backbone_checkpoint", None),
             )
         except Exception as exc:
             backbone_error_msg = f"{type(exc).__name__}: {exc}"
@@ -227,7 +229,7 @@ def run_feature_extraction(args: argparse.Namespace) -> None:
 
             for row_index, entry in enumerate(valid_entries):
                 output_row = {key: value for key, value in entry.items() if not key.startswith("_")}
-                output_row["extractor"] = args.extractor
+                output_row["extractor"] = extractor_name
                 for feature_index, value in enumerate(feature_matrix[row_index]):
                     output_row[f"feat_{feature_index:04d}"] = float(value)
                 output_rows.append(output_row)

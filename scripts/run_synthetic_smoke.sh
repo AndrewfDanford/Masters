@@ -19,6 +19,7 @@ SMOKE_IMAGE_SIZE="${SMOKE_IMAGE_SIZE:-128}"
 SMOKE_SEED="${SMOKE_SEED:-17}"
 SMOKE_E8_RUNS="${SMOKE_E8_RUNS:-8}"
 SMOKE_CURVE_STEPS="${SMOKE_CURVE_STEPS:-10}"
+SMOKE_ENABLE_TEXT_PROXY="${SMOKE_ENABLE_TEXT_PROXY:-0}"
 
 echo "[1/8] Generating synthetic smoke dataset and artifact tables..."
 "${PYTHON_BIN}" -m src.data.synthetic_smoke \
@@ -72,29 +73,42 @@ export E4_CURVE_STEPS="${E4_CURVE_STEPS:-${SMOKE_CURVE_STEPS}}"
 echo "[4/8] Running E4 concept proxy generation..."
 bash scripts/run_e4_concept.sh
 
-export E5_COHORT_CSV="${SMOKE_OUTPUT_DIR}/synthetic_cohort.csv"
-export E5_OUTPUT_CSV="${E5_OUTPUT_CSV:-${SMOKE_OUTPUT_DIR}/e5/e5_artifacts.csv}"
-export E5_META_JSON="${E5_META_JSON:-${SMOKE_OUTPUT_DIR}/e5/e5_generation_meta.json}"
-export E5_CURVE_STEPS="${E5_CURVE_STEPS:-${SMOKE_CURVE_STEPS}}"
+if [[ "${SMOKE_ENABLE_TEXT_PROXY}" == "1" ]]; then
+  export E5_COHORT_CSV="${SMOKE_OUTPUT_DIR}/synthetic_cohort.csv"
+  export E5_OUTPUT_CSV="${E5_OUTPUT_CSV:-${SMOKE_OUTPUT_DIR}/e5/e5_artifacts.csv}"
+  export E5_META_JSON="${E5_META_JSON:-${SMOKE_OUTPUT_DIR}/e5/e5_generation_meta.json}"
+  export E5_CURVE_STEPS="${E5_CURVE_STEPS:-${SMOKE_CURVE_STEPS}}"
 
-echo "[5/8] Running E5 constrained-text proxy generation..."
-bash scripts/run_e5_text_constrained.sh
+  echo "[5/8] Running E5 constrained-text proxy generation..."
+  bash scripts/run_e5_text_constrained.sh
 
-export E6_COHORT_CSV="${SMOKE_OUTPUT_DIR}/synthetic_cohort.csv"
-export E6_OUTPUT_CSV="${E6_OUTPUT_CSV:-${SMOKE_OUTPUT_DIR}/e6/e6_artifacts.csv}"
-export E6_META_JSON="${E6_META_JSON:-${SMOKE_OUTPUT_DIR}/e6/e6_generation_meta.json}"
-export E6_CURVE_STEPS="${E6_CURVE_STEPS:-${SMOKE_CURVE_STEPS}}"
+  export E6_COHORT_CSV="${SMOKE_OUTPUT_DIR}/synthetic_cohort.csv"
+  export E6_OUTPUT_CSV="${E6_OUTPUT_CSV:-${SMOKE_OUTPUT_DIR}/e6/e6_artifacts.csv}"
+  export E6_META_JSON="${E6_META_JSON:-${SMOKE_OUTPUT_DIR}/e6/e6_generation_meta.json}"
+  export E6_CURVE_STEPS="${E6_CURVE_STEPS:-${SMOKE_CURVE_STEPS}}"
 
-echo "[6/8] Running E6 unconstrained-text proxy generation..."
-bash scripts/run_e6_text_unconstrained.sh
+  echo "[6/8] Running E6 unconstrained-text proxy generation..."
+  bash scripts/run_e6_text_unconstrained.sh
+else
+  echo "[5/8] Skipping E5 constrained-text proxy (SMOKE_ENABLE_TEXT_PROXY=${SMOKE_ENABLE_TEXT_PROXY})."
+  echo "[6/8] Skipping E6 unconstrained-text proxy (SMOKE_ENABLE_TEXT_PROXY=${SMOKE_ENABLE_TEXT_PROXY})."
+fi
 
 export ASSEMBLE_E23_CSV="${SMOKE_E23_SALIENCY_CSV}"
 export ASSEMBLE_E4_CSV="${E4_OUTPUT_CSV}"
-export ASSEMBLE_E5_CSV="${E5_OUTPUT_CSV}"
-export ASSEMBLE_E6_CSV="${E6_OUTPUT_CSV}"
 export ASSEMBLE_OUTPUT_CSV="${ASSEMBLE_OUTPUT_CSV:-${SMOKE_OUTPUT_DIR}/e7/e7_input_all_methods.csv}"
 export ASSEMBLE_META_JSON="${ASSEMBLE_META_JSON:-${SMOKE_OUTPUT_DIR}/e7/e7_input_all_methods_meta.json}"
 unset ASSEMBLE_EXPECTED_CURVE_LEN
+
+if [[ "${SMOKE_ENABLE_TEXT_PROXY}" == "1" ]]; then
+  export ASSEMBLE_E5_CSV="${E5_OUTPUT_CSV}"
+  export ASSEMBLE_E6_CSV="${E6_OUTPUT_CSV}"
+  export ASSEMBLE_INPUT_CSVS="${SMOKE_E23_SALIENCY_CSV},${E4_OUTPUT_CSV},${E5_OUTPUT_CSV},${E6_OUTPUT_CSV}"
+else
+  unset ASSEMBLE_E5_CSV
+  unset ASSEMBLE_E6_CSV
+  export ASSEMBLE_INPUT_CSVS="${SMOKE_E23_SALIENCY_CSV},${E4_OUTPUT_CSV}"
+fi
 
 echo "[7/8] Assembling family artifacts and running E7 unified benchmark..."
 bash scripts/run_assemble_family_artifacts.sh
@@ -115,8 +129,8 @@ echo "Key outputs:"
 echo "  - ${SMOKE_OUTPUT_DIR}/e1/e1_metrics_summary.csv"
 echo "  - ${SMOKE_OUTPUT_DIR}/e2_e3/e2e3_saliency_method_summary.csv"
 echo "  - ${SMOKE_OUTPUT_DIR}/e4/e4_artifacts.csv"
-echo "  - ${SMOKE_OUTPUT_DIR}/e5/e5_artifacts.csv"
-echo "  - ${SMOKE_OUTPUT_DIR}/e6/e6_artifacts.csv"
+echo "  - ${SMOKE_OUTPUT_DIR}/e5/e5_artifacts.csv (optional; SMOKE_ENABLE_TEXT_PROXY=1)"
+echo "  - ${SMOKE_OUTPUT_DIR}/e6/e6_artifacts.csv (optional; SMOKE_ENABLE_TEXT_PROXY=1)"
 echo "  - ${SMOKE_OUTPUT_DIR}/e7/e7_input_all_methods.csv"
 echo "  - ${SMOKE_OUTPUT_DIR}/e7/e7_method_summary.csv"
 echo "  - ${SMOKE_OUTPUT_DIR}/e8/e8_smoke_method_summary.csv"
